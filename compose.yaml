@@ -1,0 +1,13 @@
+services:
+  davira:
+    build: .
+    ports:
+      - "127.0.0.1:3000:3000"
+    environment:
+      APP_PASSWORD: ${APP_PASSWORD:?Set APP_PASSWORD with at least 16 characters}
+    volumes:
+      - davira_data:/data
+    restart: unless-stopped
+    init: true
+volumes:
+  davira_data:

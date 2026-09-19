@@ -1,0 +1,42 @@
+{
+  "name": "davira-io",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node scripts/dev.mjs",
+    "build": "next build",
+    "start": "node scripts/dev.mjs --production",
+    "collector": "node engine/server.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "format": "prettier --write app engine scripts tests middleware.ts *.json *.js",
+    "backup": "node scripts/backup.mjs",
+    "check:local": "node scripts/check-local.mjs"
+  },
+  "dependencies": {
+    "decimal.js": "^10.6.0",
+    "fast-xml-parser": "^5.11.1",
+    "lucide-react": "^0.439.0",
+    "next": "15.5.25",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "recharts": "^2.12.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.16.5",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.45",
+    "prettier": "^3.9.6",
+    "tailwindcss": "^3.4.10",
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "^8.5.23"
+    }
+  }
+}

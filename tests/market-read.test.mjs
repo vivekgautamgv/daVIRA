@@ -1,0 +1,11 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {marketRead} from '../engine/market-read.mjs';
+const now=Date.now();
+function sample(short=false){const wallets=Array.from({length:10},(_,i)=>({address:String(i),coin:'BTC',longIn:short?0:20000,shortIn:short?20000:0,longOut:0,shortOut:0,positionDelta:short?'-1':'1',lastExecution:now}));const analyses=new Map(wallets.map(w=>[w.address,{updatedAt:now,coins:[{coin:'BTC',completeTrades:20,activeDays:7,score:80,netPnl:100}]}]));return {wallets,analyses};}
+test('qualified broad long and short positioning produces symmetric stances',()=>{for(const short of [false,true]){const {wallets,analyses}=sample(short);const r=marketRead(wallets,analyses,now);assert.equal(r.action,short?'Short bias':'Long bias');assert.equal(r.score,short?0:100);assert.equal(r.qualified,10);}});
+test('one dominant wallet vetoes a high directional score',()=>{const {wallets,analyses}=sample();wallets[0].longIn=10000000;const r=marketRead(wallets,analyses,now);assert.equal(r.score,100);assert.equal(r.action,'Wait');});
+test('covering shorts alone cannot be promoted as fresh long conviction',()=>{const {wallets,analyses}=sample();for(const w of wallets){w.shortOut=w.longIn;w.longIn=0;}assert.equal(marketRead(wallets,analyses,now).action,'Wait');});
+test('missing token track record, stale analysis and old executions all veto direction',()=>{for(const mode of ['coin','analysis','execution']){const {wallets,analyses}=sample();for(const w of wallets){const a=analyses.get(w.address);if(mode==='coin')a.coins[0].coin='ETH';if(mode==='analysis')a.updatedAt=now-7200000;if(mode==='execution')w.lastExecution=now-3*3600000;}assert.equal(marketRead(wallets,analyses,now).action,'Wait');}});
+test('specialist disagreement is explicit and neutral evidence can hold',()=>{const {wallets,analyses}=sample();wallets.forEach(w=>w.positionDelta='-1');assert.equal(marketRead(wallets,analyses,now).action,'Wait');wallets.forEach((w,i)=>{w.longIn=10000;w.shortIn=10000;w.positionDelta=i%2?'1':'-1';});assert.equal(marketRead(wallets,analyses,now).action,'Hold / neutral');});
+test('no data produces wait with no invented direction score',()=>{const r=marketRead([],new Map(),now);assert.equal(r.score,null);assert.equal(r.action,'Wait');});

@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>daVIRA Intelligence — Institutional Investment Pitch Deck</title>
+  <style>
+    :root {
+      --bg: #F8FAFC;
+      --card-bg: #FFFFFF;
+      --card-border: #E2E8F0;
+      --card-hover: #F1F5F9;
+      --text: #0F172A;
+      --text-muted: #475569;
+      --text-dim: #94A3B8;
+      --green: #059669;
+      --green-tint: #ECFDF5;
+      --blue: #0284C7;
+      --blue-tint: #F0F9FF;
+      --amber: #D97706;
+      --amber-tint: #FFFBEB;
+      --purple: #7C3AED;
+      --purple-tint: #F5F3FF;
+      --font-main: Arial, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: Consolas, "JetBrains Mono", monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #E2E8F0;
+      font-family: var(--font-main);
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Fixed 16:9 Presentation Stage */
+    .viewport {
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #CBD5E1;
+    }
+
+    .slide {
+      width: 1280px;
+      height: 720px;
+      background: var(--bg);
+      position: relative;
+      overflow: hidden;
+      display: none;
+      box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(15, 23, 42, 0.05);
+      user-select: none;
+    }
+
+    .slide.active {
+      display: block;
+      animation: slideIn 0.18s ease-out;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0.85; transform: scale(0.998); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    /* Standard Slide Header */
+    .brand {
+      position: absolute;
+      left: 64px;
+      top: 32px;
+      font-size: 22px;
+      font-weight: bold;
+      color: var(--green);
+      letter-spacing: -0.01em;
+    }
+
+    .slide-num {
+      position: absolute;
+      right: 65px;
+      top: 34px;
+      font-size: 16px;
+      color: var(--text-dim);
+      font-weight: bold;
+      font-family: var(--font-mono);
+    }
+
+    .category-label {
+      position: absolute;
+      left: 64px;
+      top: 92px;
+      font-size: 16px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-weight: bold;
+      color: var(--blue);
+    }
+
+    .slide-title {
+      position: absolute;
+      left: 64px;
+      top: 126px;
+      width: 1145px;
+      font-size: 38px;
+      font-weight: bold;
+      color: var(--text);
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    .footer {
+      position: absolute;
+      left: 64px;
+      top: 672px;
+      width: 1145px;
+      font-size: 15px;
+      color: var(--text-dim);
+    }
+
+    /* Card Components */
+    .card {
+      position: absolute;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03), 0 4px 12px rgba(0, 0, 0, 0.02);
+      padding: 22px 24px;
+    }
+
+    .card-title {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .card-subtitle {
+      font-size: 15px;
+      font-weight: bold;
+      margin-bottom: 16px;
+    }
+
+    .card-body {
+      font-size: 17px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .card-body p {
+      margin-bottom: 12px;
+    }
+
+    .card-body p:last-child {
+      margin-bottom: 0;
+    }
+
+    .stat-box {
+      position: absolute;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 16px 20px;
+    }
+
+    .stat-val {
+      font-size: 38px;
+      font-weight: bold;
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .stat-lbl {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.3;
+    }
+
+    /* Institutional Competitor Table */
+    .table-container {
+      position: absolute;
+      left: 64px;
+      top: 195px;
+      width: 1152px;
+      height: 460px;
+      background: #FFFFFF;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+    }
+
+    .competitor-table {
+      width: 100%;
+      height: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .competitor-table th {
+      background: #F8FAFC;
+      color: #0F172A;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      padding: 13px 16px;
+      border-bottom: 2px solid #E2E8F0;
+      text-align: left;
+    }
+
+    .competitor-table th.th-highlight {
+      background: #ECFDF5;
+      color: #059669;
+      border-bottom: 2px solid #059669;
+      font-weight: 800;
+    }
+
+    .competitor-table td {
+      padding: 11px 16px;
+      border-bottom: 1px solid #F1F5F9;
+      font-size: 13.5px;
+      color: #475569;
+      line-height: 1.35;
+      vertical-align: middle;
+    }
+
+    .competitor-table tr:hover td {
+      background: #F8FAFC;
+    }
+
+    .competitor-table td.td-feature {
+      font-weight: 700;
+      color: #0F172A;
+    }
+
+    .competitor-table td.td-highlight {
+      background: #F0FDF4;
+      color: #065F46;
+      font-weight: 700;
+      border-left: 1px solid #E2E8F0;
+      border-right: 1px solid #E2E8F0;
+    }
+
+    .competitor-table tr:hover td.td-highlight {
+      background: #DCFCE7;
+    }
+
+    .competitor-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .badge-check {
+      color: #059669;
+      font-weight: bold;
+      margin-right: 4px;
+    }
+
+    .badge-cross {
+      color: #94A3B8;
+      font-weight: bold;
+      margin-right: 4px;
+    }
+
+    .badge-na {
+      color: #94A3B8;
+      font-style: italic;
+    }
+
+    /* Navigation Overlay */
+    .nav-overlay {
+      position: fixed;
+      bottom: 16px;
+      right: 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--card-border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      padding: 8px 16px;
+      border-radius: 999px;
+      z-index: 1000;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-family: var(--font-mono);
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--green);
+      font-size: 16px;
+      cursor: pointer;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .nav-btn:hover {
+      background: var(--green-tint);
+    }
+
+    .pdf-link {
+      color: var(--blue);
+      text-decoration: none;
+      font-weight: bold;
+      padding-left: 8px;
+      border-left: 1px solid var(--card-border);
+    }
+
+    @media print {
+      body, .viewport {
+        background: #fff;
+        height: auto;
+      }
+      .nav-overlay { display: none !important; }
+      .slide {
+        display: block !important;
+        page-break-after: always;
+        break-after: page;
+        box-shadow: none;
+        margin: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="viewport">
+
+    <!-- SLIDE 01: COVER -->
+    <div class="slide active" data-index="1">
+      <div style="position: absolute; left: 64px; top: 110px; font-size: 18px; font-weight: bold; color: var(--blue); letter-spacing: 0.04em;">
+        INSTITUTIONAL ON-CHAIN ALPHA &amp; ALGORITHMIC TRADING
+      </div>
+      <div style="position: absolute; left: 64px; top: 160px; font-size: 78px; font-weight: bold; color: var(--text); line-height: 1;">
+        daVIRA Intelligence
+      </div>
+      <div style="position: absolute; left: 64px; top: 300px; width: 1080px; font-size: 28px; color: var(--text-muted); line-height: 1.35;">
+        Decoding the Flow. Building the Next-Generation Quantitative Powerhouse &amp; Market Maker from India to the Globe.
+      </div>
+
+      <div class="card" style="left: 64px; top: 395px; width: 1152px; height: 135px; border-color: var(--green); background: #FAFDFB;">
+        <div style="font-size: 15px; font-weight: bold; color: var(--amber); margin-bottom: 8px; letter-spacing: 0.05em; font-family: var(--font-mono);">
+          THE 3-PHASE EVOLUTIONARY ROADMAP
+        </div>
+        <div style="font-size: 21px; font-weight: bold; color: var(--text); line-height: 1.45;">
+          Phase 1: Multi-Chain Smart Money &amp; LLM Alpha Tracker &nbsp;➔&nbsp; Phase 2: Proprietary Quant Trading Desk (daVIRA Capital)<br>
+          Phase 3: Algorithmic Market Maker ("The Wintermute of India" — Quoting DEX &amp; CEX Liquidity)
+        </div>
+      </div>
+
+      <div style="position: absolute; left: 64px; top: 575px; font-size: 20px; font-weight: bold; color: var(--green); letter-spacing: 0.02em;">
+        FOUNDER: VIVEK GAUTAM
+      </div>
+      <div style="position: absolute; left: 64px; top: 612px; font-size: 18px; color: var(--text-muted);">
+        Ex-GoQuant &nbsp;·&nbsp; QuantInsti Alumnus &nbsp;·&nbsp; Quantitative &amp; Market Analyst at Crypto Firm
+      </div>
+      <div class="footer">Confidential &nbsp;·&nbsp; Institutional Seed Round</div>
+    </div>
+
+    <!-- SLIDE 02: EXECUTIVE SUMMARY -->
+    <div class="slide" data-index="2">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">02 / 17</div>
+      <div class="category-label">01 / Overview</div>
+      <div class="slide-title">Executive Summary: Transparent Signal to Market Making</div>
+
+      <!-- Card 1 -->
+      <div class="card" style="left: 64px; top: 210px; width: 365px; height: 435px; border-color: var(--blue);">
+        <div class="card-title">The Paradigm Shift</div>
+        <div class="card-subtitle" style="color: var(--blue);">On-Chain Derivative Migration</div>
+        <div class="card-body">
+          <p>• Perpetual derivative volume is migrating permanently on-chain ($2B–$5B/day on Hyperliquid alone).</p>
+          <p>• US equities (NVDA, TSLA) and commodities (Gold, Oil) now trade on DEXs alongside crypto.</p>
+          <p>• Desks lack transparent, sub-minute intelligence on who is driving cross-asset market moves.</p>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="card" style="left: 458px; top: 210px; width: 365px; height: 435px; border-color: var(--green);">
+        <div class="card-title">Current Traction</div>
+        <div class="card-subtitle" style="color: var(--green);">Live Validated Terminal</div>
+        <div class="card-body">
+          <p>• Operational terminal indexing 2,000+ top Hyperliquid wallets with complete trade history.</p>
+          <p>• 4-way flow decomposition separating new aggressive risk from short covering and de-risking.</p>
+          <p>• Live pricing: $10/month for active individual traders; scaling to enterprise prop team seats.</p>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="card" style="left: 852px; top: 210px; width: 365px; height: 435px; border-color: var(--purple);">
+        <div class="card-title">The 3-Phase Plan</div>
+        <div class="card-subtitle" style="color: var(--purple);">Clear Institutional Vision</div>
+        <div class="card-body">
+          <p>• <strong>Phase 1:</strong> Global Multi-Chain (Solana, Base, Arbitrum) + LLM Query Layer ('Everything a prompt away').</p>
+          <p>• <strong>Phase 2:</strong> In-House Prop Desk (daVIRA Capital) trading proprietary signals &amp; funding rate basis.</p>
+          <p>• <strong>Phase 3:</strong> Algorithmic Market Maker ('The Wintermute of India') providing deep liquidity globally.</p>
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 03: THE PARADIGM SHIFT -->
+    <div class="slide" data-index="3">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">03 / 17</div>
+      <div class="category-label">02 / Market Opportunity</div>
+      <div class="slide-title">The Paradigm Shift: Crypto &amp; Macro Volume Migrating On-Chain</div>
+
+      <div class="stat-box" style="left: 64px; top: 210px; width: 268px; border-color: var(--blue);">
+        <div class="stat-val" style="color: var(--blue);">$4.2T+</div>
+        <div class="stat-lbl">Annualized On-Chain Perp Volume</div>
+      </div>
+      <div class="stat-box" style="left: 360px; top: 210px; width: 268px; border-color: var(--green);">
+        <div class="stat-val" style="color: var(--green);">2,000+</div>
+        <div class="stat-lbl">Wallets Controlling 78% Alpha</div>
+      </div>
+      <div class="stat-box" style="left: 656px; top: 210px; width: 268px; border-color: var(--amber);">
+        <div class="stat-val" style="color: var(--amber);">80%+</div>
+        <div class="stat-lbl">Volume Handled by Algo Desks &amp; Quants</div>
+      </div>
+      <div class="stat-box" style="left: 952px; top: 210px; width: 264px; border-color: var(--purple);">
+        <div class="stat-val" style="color: var(--purple);">0</div>
+        <div class="stat-lbl">Tier-1 Global Market Makers in India</div>
+      </div>
+
+      <div class="card" style="left: 64px; top: 365px; width: 560px; height: 280px;">
+        <div class="card-title">The Centralized Exchange Exodus</div>
+        <div class="card-subtitle" style="color: var(--blue);">Opaque Orderbooks &nbsp;➔&nbsp; Verifiable On-Chain Fills</div>
+        <div class="card-body">
+          <p>• Capital is migrating to high-throughput on-chain orderbooks (Hyperliquid, Solana, Monad).</p>
+          <p>• Every position snapshot, fill, and liquidation is public—yet 99% of funds cannot decode raw event streams in real time.</p>
+          <p>• Desks that capture this order flow gain an unprecedented information advantage.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 656px; top: 365px; width: 560px; height: 280px;">
+        <div class="card-title">The India Opportunity</div>
+        <div class="card-subtitle" style="color: var(--green);">World-Class Quant Talent Without Institutional Infrastructure</div>
+        <div class="card-body">
+          <p>• India accounts for over 20% of global crypto users and exports the world's finest mathematical, software, and quant engineering minds.</p>
+          <p>• Yet India lacks a native market maker like Wintermute (UK/SG) or Jump (US).</p>
+          <p>• daVIRA bridges this divide: starting with world-class intelligence and scaling into an institutional market making titan.</p>
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 04: THE PROBLEM -->
+    <div class="slide" data-index="4">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">04 / 17</div>
+      <div class="category-label">03 / Market Gaps</div>
+      <div class="slide-title">The Institutional Blindspot in Crypto Alpha &amp; Execution</div>
+
+      <div class="card" style="left: 64px; top: 210px; width: 365px; height: 435px;">
+        <div class="card-title">Misleading 'Smart Money'</div>
+        <div class="card-subtitle" style="color: var(--amber);">Fake Signals &amp; Flawed Aggregation</div>
+        <div class="card-body">
+          <p>✕ Current trackers (Nansen, Arkham) treat every buy equally. A short covering squeeze is mislabeled as aggressive bullish conviction.</p>
+          <p>✕ Whales split orders across 10 sub-wallets to fake cohort consensus, luring retail and funds into distribution traps.</p>
+          <p>✕ Lack of fee, funding drag, and slippage stress testing creates paper-profitable illusions that fail in live execution.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 458px; top: 210px; width: 365px; height: 435px;">
+        <div class="card-title">Complex Query Friction</div>
+        <div class="card-subtitle" style="color: var(--amber);">Alpha Trapped Behind Code &amp; SQL</div>
+        <div class="card-body">
+          <p>✕ Professional traders waste 4–6 hours daily writing Dune SQL queries or subgraphs just to isolate whale movements.</p>
+          <p>✕ By the time custom queries are compiled, alpha has decayed. Crypto perp markets move in seconds.</p>
+          <p>✕ No prompt-driven conversational interface exists to dynamically screen and stress-test on-chain position flows.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 852px; top: 210px; width: 365px; height: 435px;">
+        <div class="card-title">Fragmented Asset Feeds</div>
+        <div class="card-subtitle" style="color: var(--amber);">Crypto Isolated From Macro Reality</div>
+        <div class="card-body">
+          <p>✕ US equities and commodities are actively trading on decentralized venues, yet analytics tools remain crypto-only.</p>
+          <p>✕ Traders cannot see how smart-money whales rotate capital between crypto beta, tech stocks, and gold hedges.</p>
+          <p>✕ Multi-strategy funds are forced to pay six figures for fragmented legacy terminal subscriptions.</p>
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 05: THE SOLUTION -->
+    <div class="slide" data-index="5">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">05 / 17</div>
+      <div class="category-label">04 / The Solution</div>
+      <div class="slide-title">daVIRA Intelligence: Mathematical Rigor &amp; Execution Reality</div>
+
+      <div class="card" style="left: 64px; top: 210px; width: 560px; height: 205px; border-color: var(--green);">
+        <div class="card-title">4-Way Flow Decomposition</div>
+        <div class="card-subtitle" style="color: var(--green);">Isolating Genuine Directional Conviction</div>
+        <div class="card-body">
+          <p>✔ Decomposes every transaction into 4 vectors: New Long, Short Cover, New Short, and Long Exit.</p>
+          <p>✔ Differentiates aggressive new directional leverage from passive risk reduction and short covering.</p>
+          <p>✔ Eliminates false breakout traps before capital is committed.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 656px; top: 210px; width: 560px; height: 205px; border-color: var(--blue);">
+        <div class="card-title">Anti-Spoofing Agreement Radar</div>
+        <div class="card-subtitle" style="color: var(--blue);">One-Wallet, One-Vote Mechanics</div>
+        <div class="card-body">
+          <p>✔ Removes the largest contributor to test whether consensus is driven by one whale or multi-desk buying.</p>
+          <p>✔ Detects wallet clustering and internal wash-positioning.</p>
+          <p>✔ Delivers pure, unmanipulated directional signals.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 64px; top: 432px; width: 560px; height: 205px; border-color: var(--amber);">
+        <div class="card-title">Front-Running &amp; Early Delta Radar</div>
+        <div class="card-subtitle" style="color: var(--amber);">Sub-Minute Position Delta Tracking</div>
+        <div class="card-body">
+          <p>✔ Monitors 2,000+ top-tier profitable wallets for balance and position delta shifts in real time.</p>
+          <p>✔ Alerts on abnormal accumulation minutes before major breakouts or macro releases (FOMC/CPI).</p>
+          <p>✔ Coin-specific historical win-rate tracking.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 656px; top: 432px; width: 560px; height: 205px; border-color: var(--purple);">
+        <div class="card-title">Copyability Cost Stress-Testing</div>
+        <div class="card-subtitle" style="color: var(--purple);">Execution-Adjusted Alpha Metrics</div>
+        <div class="card-body">
+          <p>✔ Applies 0 / 5 / 10 / 25 bps slippage and taker fee stress testing on every wallet.</p>
+          <p>✔ Calculates median holding time and maker/taker execution ratios.</p>
+          <p>✔ Filters out uncopyable HFT scalpers to surface reproducible swing alpha.</p>
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 06: SMART MONEY TRACKING FOR EVERY TIER -->
+    <div class="slide" data-index="6">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">06 / 17</div>
+      <div class="category-label">05 / User Impact</div>
+      <div class="slide-title">Smart-Money Tracking Empowering Every Tier of Trader</div>
+
+      <div class="card" style="left: 64px; top: 210px; width: 560px; height: 205px; border-color: var(--green);">
+        <div class="card-title">For Normal &amp; Retail Traders</div>
+        <div class="card-subtitle" style="color: var(--green);">$10/Month Live Offering</div>
+        <div class="card-body">
+          <p>• Stop Buying into Distribution Pumps: Understand whether smart money is opening fresh leverage or using retail liquidity to cover shorts.</p>
+          <p>• Clear, Transparent Signals: Eliminate the need to join paid Telegram alpha groups or rely on unverified Twitter influencers.</p>
+          <p>• Accessible Pricing: Live today at $10/month, delivering institutional-grade clarity to everyday crypto participants.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 656px; top: 210px; width: 560px; height: 205px; border-color: var(--blue);">
+        <div class="card-title">For Individual Crypto Quants</div>
+        <div class="card-subtitle" style="color: var(--blue);">Reproducible Systematic Alpha</div>
+        <div class="card-body">
+          <p>• Realistic Execution Drag: Stress-test any wallet's historical fills against real taker fees (4.5 bps), slippage, and funding rate drag.</p>
+          <p>• Isolate True Swing Alpha: Filter out high-frequency market-maker noise and scalpers that cannot be followed manually.</p>
+          <p>• Paper Simulation Journal: Forward-test strategies with virtual capital before allocating personal funds.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 64px; top: 432px; width: 560px; height: 205px; border-color: var(--amber);">
+        <div class="card-title">For Proprietary Trading Firms</div>
+        <div class="card-subtitle" style="color: var(--amber);">Eliminate SQL Friction &amp; Detect Shifts</div>
+        <div class="card-body">
+          <p>• No More Manual Dune Queries: Instant cohort-level consensus, pre-move accumulation alerts, and net exposure breakdown.</p>
+          <p>• Shared Team Watchlists: Collaborative wallet tracking, custom webhook triggers into internal risk OMS, and institutional API feeds.</p>
+          <p>• Macro Event Positioning: Inspect how tracked desks are positioned minutes before CPI, FOMC, and token unlock events.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 656px; top: 432px; width: 560px; height: 205px; border-color: var(--purple);">
+        <div class="card-title">For Institutional Risk Desks</div>
+        <div class="card-subtitle" style="color: var(--purple);">Exposing Whale Concentration</div>
+        <div class="card-body">
+          <p>• One-Wallet-One-Vote Testing: Instantly determine whether apparent consensus is driven by 20 independent desks or 1 whale across 10 wallets.</p>
+          <p>• Liquidation Distance Mapping: Measure covered liquidation risk and distance for top tracked accounts in real time.</p>
+          <p>• Cross-Venue Basis Signals: Monitor funding and basis mispricings between Hyperliquid and centralized exchanges (Bybit/Binance).</p>
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 07: WHOLE-MARKET VIEW -->
+    <div class="slide" data-index="7">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">07 / 17</div>
+      <div class="category-label">06 / Cross-Asset Convergence</div>
+      <div class="slide-title">Whole-Market View: Crypto, US Equities and Commodities</div>
+
+      <div class="card" style="left: 64px; top: 210px; width: 1152px; height: 105px; border-color: var(--blue);">
+        <div style="font-size: 24px; font-weight: bold; color: var(--text); margin-bottom: 6px;">
+          US Equities, Stock Indices, and Commodities Have Moved On-Chain
+        </div>
+        <div style="font-size: 18px; color: var(--blue); line-height: 1.4;">
+          Hyperliquid HIP-1 and decentralized perp DEXs now trade NVDA, TSLA, Gold, and Oil alongside crypto.<br>daVIRA provides the first unified wallet ledger tracking global macro asset rotation in real time.
+        </div>
+      </div>
+
+      <div class="card" style="left: 64px; top: 335px; width: 365px; height: 310px;">
+        <div class="card-title">Real-Time Macro Rotation</div>
+        <div class="card-subtitle" style="color: var(--green);">Observable Capital Shifts</div>
+        <div class="card-body">
+          <p>• Track how top crypto whales rotate profits out of high-beta tokens into Gold, Crude Oil, or US tech equity perps.</p>
+          <p>• Detect defensive macro de-risking hours before traditional market opens and financial media reports.</p>
+          <p>• Connect crypto liquidity shifts directly to institutional macro risk sentiment.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 458px; top: 335px; width: 365px; height: 310px;">
+        <div class="card-title">Unified Cross-Asset Ledger</div>
+        <div class="card-subtitle" style="color: var(--green);">Single Source of Truth</div>
+        <div class="card-body">
+          <p>• Traditional hedge funds pay $50k+/year combining separate prime brokerage feeds, 13F filings, and crypto feeds.</p>
+          <p>• daVIRA unifies crypto and real-world assets on one transparent on-chain orderbook ledger.</p>
+          <p>• Inspect equity/commodity derivatives exposure alongside native crypto perp positions.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 852px; top: 335px; width: 365px; height: 310px;">
+        <div class="card-title">Pre-Event Positioning</div>
+        <div class="card-subtitle" style="color: var(--green);">Macro Volatility Alpha</div>
+        <div class="card-body">
+          <p>• Observe smart money preparing for scheduled BLS inflation releases, FOMC statements, and earnings announcements.</p>
+          <p>• Differentiate organic commodity spot demand from speculative perpetual leverage expansion.</p>
+          <p>• Export comprehensive cross-asset flow reports directly to CSV or institutional webhooks.</p>
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 08: LIVE WORKING PRODUCT TRACTION -->
+    <div class="slide" data-index="8">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">08 / 17</div>
+      <div class="category-label">07 / Product Validation</div>
+      <div class="slide-title">Live Working Terminal: Operational Architecture Today</div>
+
+      <div class="stat-box" style="left: 64px; top: 210px; width: 268px; border-color: var(--green);">
+        <div class="stat-val" style="color: var(--green);">2,000+</div>
+        <div class="stat-lbl">Indexed Leaderboard Wallets</div>
+      </div>
+      <div class="stat-box" style="left: 360px; top: 210px; width: 268px; border-color: var(--blue);">
+        <div class="stat-val" style="color: var(--blue);">&lt; 60s</div>
+        <div class="stat-lbl">Sub-Minute Delta Refresh</div>
+      </div>
+      <div class="stat-box" style="left: 656px; top: 210px; width: 268px; border-color: var(--amber);">
+        <div class="stat-val" style="color: var(--amber);">2,000 Fills</div>
+        <div class="stat-lbl">Flat-to-Flat Episodes Indexed</div>
+      </div>
+      <div class="stat-box" style="left: 952px; top: 210px; width: 264px; border-color: var(--purple);">
+        <div class="stat-val" style="color: var(--purple);">$10 / mo</div>
+        <div class="stat-lbl">Active Individual Tier</div>
+      </div>
+
+      <img src="/artifacts/pitch-build/extracted_media/ppt/media/image.png" alt="Prototype Snapshot"
+           style="position: absolute; left: 64px; top: 340px; width: 680px; height: 305px; object-fit: contain; border-radius: 8px; border: 1px solid var(--card-border);"
+           onerror="this.src='/artifacts/pitch-build/rendered/slide-03.png'" />
+
+      <div class="card" style="left: 764px; top: 340px; width: 452px; height: 305px;">
+        <div class="card-title">Implemented System Modules</div>
+        <div class="card-subtitle" style="color: var(--blue);">Production-ready local-first terminal engine</div>
+        <div class="card-body" style="font-size: 16px;">
+          <p>• <strong>Smart-Money Desk:</strong> Real-time net exposure across 40 top profitable wallets + 20 watchlist addresses.</p>
+          <p>• <strong>Heavy Wallet Screener:</strong> Full filtering by 30D net PnL, profit factor, drawdown, and holding period.</p>
+          <p>• <strong>Early Position Radar:</strong> Sub-minute alerts on abnormal accumulation before breakout moves.</p>
+          <p>• <strong>Cross-Venue Comparison:</strong> Live basis comparison between Hyperliquid USD and Bybit USDT perps.</p>
+          <p>• <strong>Paper Trading Journal:</strong> Virtual testing with 4.5 bps taker fees, 5 bps slippage, and leverage caps.</p>
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 09: THE SECRET WEAPON - LLM INTELLIGENCE LAYER -->
+    <div class="slide" data-index="9">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">09 / 17</div>
+      <div class="category-label">08 / AI Intelligence</div>
+      <div class="slide-title">The Secret Weapon: Everything Just a Prompt Away</div>
+
+      <div class="card" style="left: 64px; top: 210px; width: 1152px; height: 100px; border-color: var(--green);">
+        <div style="font-size: 22px; font-weight: bold; color: var(--text); margin-bottom: 4px;">Natural Language to Institutional Order Flow Alpha</div>
+        <div style="font-size: 17px; color: var(--text-muted); line-height: 1.4;">
+          daVIRA bridges fine-tuned reasoning LLMs directly to our live on-chain WebSocket stream and SQLite transaction ledger.<br>
+          Institutional analysts query complex multi-chain order flows in plain English and receive instant actionable breakdowns.
+        </div>
+      </div>
+
+      <div class="card" style="left: 64px; top: 330px; width: 365px; height: 315px; border-color: var(--green);">
+        <div style="font-size: 14px; font-weight: bold; color: var(--green); margin-bottom: 8px;">PROMPT: ACCUMULATION RADAR</div>
+        <div style="font-size: 19px; font-weight: bold; color: var(--text); margin-bottom: 12px; line-height: 1.3;">
+          "Show me wallets with >70% win rate over 60 days that opened >$500k long exposure on SOL in the last 20 minutes."
+        </div>
+        <div class="card-body" style="font-size: 16px;">
+          <strong>Action:</strong><br>Returns 3 verified wallets, confirms zero short covering, and plots entry prices against current order book liquidity depth.
+        </div>
+      </div>
+
+      <div class="card" style="left: 458px; top: 330px; width: 365px; height: 315px; border-color: var(--amber);">
+        <div style="font-size: 14px; font-weight: bold; color: var(--amber); margin-bottom: 8px;">PROMPT: PRE-EVENT POSITIONING</div>
+        <div style="font-size: 19px; font-weight: bold; color: var(--text); margin-bottom: 12px; line-height: 1.3;">
+          "Deconstruct the rally in BTC ahead of tomorrow's CPI. Is this organic spot, aggressive perp leverage, or short covering?"
+        </div>
+        <div class="card-body" style="font-size: 16px;">
+          <strong>Action:</strong><br>Computes 4-way flow decomposition: reveals 68% was short covering (exit flow), warning against chasing the fake breakout.
+        </div>
+      </div>
+
+      <div class="card" style="left: 852px; top: 330px; width: 365px; height: 315px; border-color: var(--blue);">
+        <div style="font-size: 14px; font-weight: bold; color: var(--blue); margin-bottom: 8px;">PROMPT: STRATEGY STRESS-TEST</div>
+        <div style="font-size: 19px; font-weight: bold; color: var(--text); margin-bottom: 12px; line-height: 1.3;">
+          "Find top 5 momentum traders in RWA derivatives whose returns remain positive after 15 bps slippage and funding fee drag."
+        </div>
+        <div class="card-body" style="font-size: 16px;">
+          <strong>Action:</strong><br>Reconstructs 2,000 flat-to-flat episodes, eliminates 8 unprofitable scalpers, and delivers 3 copyable systematic traders.
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 10: THE 3-PHASE ROADMAP -->
+    <div class="slide" data-index="10">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">10 / 17</div>
+      <div class="category-label">09 / Strategic Vision</div>
+      <div class="slide-title">The 3-Phase Master Roadmap: From Signal to Market Making</div>
+
+      <div class="card" style="left: 64px; top: 210px; width: 365px; height: 435px; border-color: var(--blue);">
+        <div style="font-size: 16px; font-weight: bold; color: var(--blue); margin-bottom: 4px;">PHASE 1</div>
+        <div class="card-title">Global Crypto Tracker &amp; LLM</div>
+        <div class="card-subtitle" style="color: var(--text-dim);">NOW - Q4 2026</div>
+        <div class="card-body">
+          <p>• Multi-chain expansion: Hyperliquid, Solana, Arbitrum, Base.</p>
+          <p>• Real-time wallet balance &amp; position delta tracking.</p>
+          <p>• Cross-asset whole-market view (Crypto, US Equities &amp; Commodities).</p>
+          <p>• Conversational LLM terminal ('Everything a prompt away').</p>
+          <p>• Monetization: $10/mo individual + institutional prop desk seats.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 458px; top: 210px; width: 365px; height: 435px; border-color: var(--green);">
+        <div style="font-size: 16px; font-weight: bold; color: var(--green); margin-bottom: 4px;">PHASE 2</div>
+        <div class="card-title">daVIRA Capital (Prop Desk)</div>
+        <div class="card-subtitle" style="color: var(--text-dim);">2027</div>
+        <div class="card-body">
+          <p>• Deploy in-house proprietary trading desk with firm capital.</p>
+          <p>• Systematically trade our own flow signals &amp; wallet consensus.</p>
+          <p>• Harvest delta-neutral funding rate basis arbitrage (15–40% APY).</p>
+          <p>• Exploit cross-venue statistical mispricings and liquidation cascades.</p>
+          <p>• Compound balance sheet to fund high-capacity market making.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 852px; top: 210px; width: 365px; height: 435px; border-color: var(--purple);">
+        <div style="font-size: 16px; font-weight: bold; color: var(--purple); margin-bottom: 4px;">PHASE 3</div>
+        <div class="card-title">The Wintermute of India</div>
+        <div class="card-subtitle" style="color: var(--text-dim);">2027 - 2028</div>
+        <div class="card-body">
+          <p>• Launch institutional Algorithmic Market Making (AMM) arm.</p>
+          <p>• Two-sided automated liquidity provision on DEXs &amp; Tier-1 CEXs.</p>
+          <p>• Strategic liquidity partnerships with top protocols &amp; token foundations.</p>
+          <p>• Institutional delta-neutral inventory &amp; automated quoting engines.</p>
+          <p>• Become India's flagship global crypto market-making powerhouse.</p>
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 11: STRATEGY DEEP DIVE -->
+    <div class="slide" data-index="11">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">11 / 17</div>
+      <div class="category-label">10 / Strategy Deep-Dive</div>
+      <div class="slide-title">Capitalizing on Internal Edge: Prop Trading &amp; Market Making</div>
+
+      <div class="card" style="left: 64px; top: 210px; width: 560px; height: 435px; border-color: var(--green);">
+        <div class="card-title">Phase 2: daVIRA Capital (Prop Desk)</div>
+        <div class="card-subtitle" style="color: var(--green);">Direct Alpha: Trading Market Inefficiencies With Firm Capital</div>
+        <div class="card-body" style="font-size: 18px;">
+          <p>• <strong>Direct Signal Monetization:</strong> Rather than solely selling analytics, we trade verified whale consensus and accumulation leads with millisecond execution.</p>
+          <p>• <strong>Systematic Funding Basis Arbitrage:</strong> Capture persistent annualized funding rate premiums (15%–40% APY) across decentralized and centralized venues delta-neutrally.</p>
+          <p>• <strong>Microstructural Pattern Recognition:</strong> Exploit recurring liquidation cascades, taker order imbalances, and cross-venue lead-lag mispricings.</p>
+          <p>• <strong>Balance Sheet Compounding:</strong> Reinvest trading profits to build a self-sustaining quantitative balance sheet.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 656px; top: 210px; width: 560px; height: 435px; border-color: var(--purple);">
+        <div class="card-title">Phase 3: The Wintermute of India</div>
+        <div class="card-subtitle" style="color: var(--purple);">Institutional High-Frequency Liquidity Provision</div>
+        <div class="card-body" style="font-size: 18px;">
+          <p>• <strong>The Wintermute Blueprint:</strong> Wintermute generated $1B+ in cumulative volume by building proprietary quoting engines in Europe. daVIRA is building India's premier market maker.</p>
+          <p>• <strong>Continuous Two-Sided Quoting:</strong> Provide deep bid-ask liquidity across Hyperliquid, Uniswap, Raydium, Aerodrome, Binance, and Bybit.</p>
+          <p>• <strong>Delta-Neutral Inventory Management:</strong> Dynamic hedging models protecting liquidity pools from toxic adverse selection and directional market shocks.</p>
+          <p>• <strong>Token Foundation Retainers:</strong> Partner directly with high-growth L1/L2 protocols for guaranteed orderbook depth and liquidity retainers ($15k–$40k/month).</p>
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 12: TARGET MARKET & TAM -->
+    <div class="slide" data-index="12">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">12 / 17</div>
+      <div class="category-label">11 / Total Addressable Market</div>
+      <div class="slide-title">Expanding Across High-Value Financial Markets</div>
+
+      <div class="card" style="left: 64px; top: 210px; width: 365px; height: 435px; border-color: var(--blue);">
+        <div style="font-size: 16px; font-weight: bold; color: var(--blue); margin-bottom: 4px;">PHASE 1: ANALYTICS</div>
+        <div style="font-size: 40px; font-weight: bold; color: var(--text); margin-bottom: 12px;">$1.8B TAM</div>
+        <div class="card-body" style="margin-bottom: 16px;">
+          Global crypto market intelligence, pro terminals (Nansen, Arkham), and on-chain hedge fund data feeds.
+        </div>
+        <div style="font-size: 16px; font-weight: bold; color: var(--text); margin-bottom: 6px;">Strategic Advantage:</div>
+        <div style="font-size: 18px; color: var(--blue); line-height: 1.4;">
+          • First terminal with 4-way flow decomposition, LLM prompt queries &amp; cross-asset DEX view.
+        </div>
+      </div>
+
+      <div class="card" style="left: 458px; top: 210px; width: 365px; height: 435px; border-color: var(--green);">
+        <div style="font-size: 16px; font-weight: bold; color: var(--green); margin-bottom: 4px;">PHASE 2: PROP TRADING</div>
+        <div style="font-size: 40px; font-weight: bold; color: var(--text); margin-bottom: 12px;">$10B+ Profit</div>
+        <div class="card-body" style="margin-bottom: 16px;">
+          Systematic crypto prop trading, statistical arbitrage, and funding rate harvest across global markets.
+        </div>
+        <div style="font-size: 16px; font-weight: bold; color: var(--text); margin-bottom: 6px;">Strategic Advantage:</div>
+        <div style="font-size: 18px; color: var(--green); line-height: 1.4;">
+          • Trade our own high-velocity proprietary signals directly with internal firm capital.
+        </div>
+      </div>
+
+      <div class="card" style="left: 852px; top: 210px; width: 365px; height: 435px; border-color: var(--purple);">
+        <div style="font-size: 16px; font-weight: bold; color: var(--purple); margin-bottom: 4px;">PHASE 3: MARKET MAKING</div>
+        <div style="font-size: 40px; font-weight: bold; color: var(--text); margin-bottom: 12px;">$15B+ Revenue</div>
+        <div class="card-body" style="margin-bottom: 16px;">
+          Two-sided liquidity provision, CEX/DEX spread capture, and protocol token liquidity retainers.
+        </div>
+        <div style="font-size: 16px; font-weight: bold; color: var(--text); margin-bottom: 6px;">Strategic Advantage:</div>
+        <div style="font-size: 18px; color: var(--purple); line-height: 1.4;">
+          • India's premier quantitative market maker built on top engineering talent at 75% cost advantage.
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 13: COMPETITIVE ADVANTAGE MATRIX -->
+    <div class="slide" data-index="13">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">13 / 17</div>
+      <div class="category-label">12 / Competitive Moat</div>
+      <div class="slide-title">Why daVIRA Outpaces Existing Market Players</div>
+
+      <div class="table-container">
+        <table class="competitor-table">
+          <thead>
+            <tr>
+              <th style="width: 25%;">Institutional Capability</th>
+              <th style="width: 19%;">Nansen / Arkham</th>
+              <th style="width: 17%;">Hyperdash</th>
+              <th style="width: 18%;">Wintermute</th>
+              <th class="th-highlight" style="width: 21%;">daVIRA Intelligence</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="td-feature">Data Transparency &amp; Proof</td>
+              <td>Aggregated black-box vanity scores</td>
+              <td>Basic raw wallet stats</td>
+              <td>Proprietary internal data only</td>
+              <td class="td-highlight"><span class="badge-check">✔</span> Full execution proof &amp; attribution</td>
+            </tr>
+            <tr>
+              <td class="td-feature">4-Way Flow Decomposition</td>
+              <td><span class="badge-cross">✕</span> Misidentifies short covers</td>
+              <td><span class="badge-cross">✕</span> Unfiltered raw trade fills</td>
+              <td><span class="badge-na">N/A</span> (Trading desk only)</td>
+              <td class="td-highlight"><span class="badge-check">✔</span> 4-vector entry/exit split</td>
+            </tr>
+            <tr>
+              <td class="td-feature">Cross-Asset Equities &amp; Gold</td>
+              <td><span class="badge-cross">✕</span> Crypto native only</td>
+              <td><span class="badge-cross">✕</span> Crypto native only</td>
+              <td><span class="badge-check">✔</span> Multi-asset desk</td>
+              <td class="td-highlight"><span class="badge-check">✔</span> Real-time DEX macro view</td>
+            </tr>
+            <tr>
+              <td class="td-feature">Natural Language LLM Copilot</td>
+              <td><span class="badge-cross">✕</span> Basic query filters only</td>
+              <td><span class="badge-cross">✕</span> Static UI tables</td>
+              <td><span class="badge-cross">✕</span> Internal tools only</td>
+              <td class="td-highlight"><span class="badge-check">✔</span> "Everything a prompt away"</td>
+            </tr>
+            <tr>
+              <td class="td-feature">Execution Drag Stress Testing</td>
+              <td><span class="badge-cross">✕</span> Assumes 0 fee / 0 slip</td>
+              <td><span class="badge-cross">✕</span> Paper returns only</td>
+              <td><span class="badge-na">N/A</span></td>
+              <td class="td-highlight"><span class="badge-check">✔</span> 0–25 bps fee &amp; slip stress</td>
+            </tr>
+            <tr>
+              <td class="td-feature">Proprietary Trading Arm</td>
+              <td><span class="badge-cross">✕</span> Software vendor only</td>
+              <td><span class="badge-cross">✕</span> Pure analytics UI</td>
+              <td><span class="badge-check">✔</span> High-frequency desk</td>
+              <td class="td-highlight"><span class="badge-check">✔</span> Phase 2 Prop Trading Desk</td>
+            </tr>
+            <tr>
+              <td class="td-feature">Algorithmic Market Making</td>
+              <td><span class="badge-cross">✕</span> None</td>
+              <td><span class="badge-cross">✕</span> None</td>
+              <td><span class="badge-check">✔</span> Tier-1 Global MM</td>
+              <td class="td-highlight"><span class="badge-check">✔</span> Phase 3 "Wintermute of India"</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 14: BUSINESS MODEL & UNIT ECONOMICS -->
+    <div class="slide" data-index="14">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">14 / 17</div>
+      <div class="category-label">13 / Monetization</div>
+      <div class="slide-title">Diversified Revenue Model Across Three Phases</div>
+
+      <div class="card" style="left: 64px; top: 210px; width: 365px; height: 435px; border-color: var(--green);">
+        <div class="card-title">Phase 1: SaaS Software</div>
+        <div class="card-subtitle" style="color: var(--green);">High-Margin Recurring Subscriptions</div>
+        <div class="card-body">
+          <p>• <strong>Individual Trader Tier: $10/month</strong> (live active offering) for retail and independent crypto traders seeking verified flow transparency.</p>
+          <p>• <strong>Prop Desk / Institutional Tier: $499–$999/month</strong> per seat with team watchlists, custom webhooks, and LLM prompt volume.</p>
+          <p>• <strong>Enterprise Multi-Chain API: $2,500+/month</strong> for algorithmic hedge funds and quantitative family offices.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 458px; top: 210px; width: 365px; height: 435px; border-color: var(--blue);">
+        <div class="card-title">Phase 2: Prop Trading</div>
+        <div class="card-subtitle" style="color: var(--blue);">High-Capacity Alpha Compounding</div>
+        <div class="card-body">
+          <p>• <strong>Proprietary Signal Execution:</strong> Direct alpha generation exploiting internal flow leads and verified whale accumulation.</p>
+          <p>• <strong>Delta-Neutral Basis Capture:</strong> Harvesting 15%–40% annualized funding rate premiums across DEX and CEX venues.</p>
+          <p>• <strong>High Sharpe Target:</strong> Targeting Sharpe &gt; 3.0 on systematic microstructural inefficiencies and liquidation arbitrage.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 852px; top: 210px; width: 365px; height: 435px; border-color: var(--purple);">
+        <div class="card-title">Phase 3: Market Making</div>
+        <div class="card-subtitle" style="color: var(--purple);">Volume &amp; Liquidity Monetization</div>
+        <div class="card-body">
+          <p>• <strong>Bid-Ask Spread Capture:</strong> Capturing 2–8 bps on hundreds of millions in daily automated quoting volume across venues.</p>
+          <p>• <strong>Token Foundation Retainers:</strong> Recurring retainers ($15k–$40k/month per token) for guaranteed orderbook depth and tight spreads.</p>
+          <p>• <strong>Exchange Fee Rebates:</strong> Generating positive maker fee rebates through tier-1 VIP market making status.</p>
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 15: TECHNICAL ARCHITECTURE -->
+    <div class="slide" data-index="15">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">15 / 17</div>
+      <div class="category-label">14 / Technology Stack</div>
+      <div class="slide-title">High-Throughput, Low-Latency Quantitative Architecture</div>
+
+      <div class="card" style="left: 64px; top: 210px; width: 560px; height: 205px; border-color: var(--blue);">
+        <div class="card-title">01 / Ingestion Layer</div>
+        <div class="card-subtitle" style="color: var(--blue);">Direct Validator &amp; WebSocket Feeds</div>
+        <div class="card-body">
+          <p>✔ Sub-second event stream from Hyperliquid L1, Solana Geyser, and EVM RPCs.</p>
+          <p>✔ Deduplication by (block, coin, trade_id) with microsecond timestamping.</p>
+          <p>✔ Continuous buffer handling 100,000+ trades without backpressure.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 656px; top: 210px; width: 560px; height: 205px; border-color: var(--green);">
+        <div class="card-title">02 / Processing &amp; Analytics Core</div>
+        <div class="card-subtitle" style="color: var(--green);">Deterministic Mathematical Engine</div>
+        <div class="card-body">
+          <p>✔ Node.js 24 + SQLite WAL mode engine with Decimal.js zero-floating-point drift.</p>
+          <p>✔ Flat-to-flat episode reconstruction across 2,000 historical fills per wallet.</p>
+          <p>✔ Continuous calculation of Profit Factor, Drawdown, and Agreement Index.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 64px; top: 432px; width: 560px; height: 205px; border-color: var(--amber);">
+        <div class="card-title">03 / LLM Reasoning Agent</div>
+        <div class="card-subtitle" style="color: var(--amber);">Conversational Alpha Gateway</div>
+        <div class="card-body">
+          <p>✔ Semantic router converting natural language queries into schema-optimized SQL.</p>
+          <p>✔ Zero-shot automated market narrative generation and risk stress testing.</p>
+          <p>✔ Direct webhook push notifications to Telegram, Discord, and internal OMS.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 656px; top: 432px; width: 560px; height: 205px; border-color: var(--purple);">
+        <div class="card-title">04 / Low-Latency Execution Rails</div>
+        <div class="card-subtitle" style="color: var(--purple);">Non-Custodial Smart Order Routing</div>
+        <div class="card-body">
+          <p>✔ Ultra-low latency non-custodial execution engine with sub-5ms routing.</p>
+          <p>✔ Automated slippage, fee, and leverage guardrails protecting against liquidation.</p>
+          <p>✔ Modular architecture designed for institutional multi-chain colocation.</p>
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 16: FOUNDER & PEDIGREE -->
+    <div class="slide" data-index="16">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">16 / 17</div>
+      <div class="category-label">15 / Leadership</div>
+      <div class="slide-title">Founder: Vivek Gautam — Deep Quantitative &amp; Crypto Pedigree</div>
+
+      <div class="card" style="left: 64px; top: 210px; width: 560px; height: 435px; border-color: var(--green);">
+        <div style="font-size: 28px; font-weight: bold; color: var(--text); margin-bottom: 4px;">Vivek Gautam</div>
+        <div class="card-subtitle" style="color: var(--green);">Founder &amp; Lead Quantitative Architect</div>
+        <div class="card-body" style="font-size: 18px;">
+          <p>• <strong>Ex-GoQuant:</strong> Worked at the forefront of institutional crypto market data, normalized order routing, and low-latency infrastructure connecting institutions to crypto venues.</p>
+          <p>• <strong>QuantInsti Alumnus:</strong> Formally trained in algorithmic and quantitative finance, financial engineering, econometric modeling, and high-frequency trading systems.</p>
+          <p>• <strong>Quantitative Analyst at Leading Crypto Firm:</strong> Currently actively analyzing crypto market microstructure, perpetual derivative flows, on-chain dynamics, and trading inefficiencies.</p>
+          <p>• <strong>Hands-On Full-Stack Systems Builder:</strong> Personally architected and engineered the entire daVIRA terminal, WebSocket stream listeners, and quantitative screener algorithms.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 656px; top: 210px; width: 560px; height: 435px; border-color: var(--blue);">
+        <div style="font-size: 28px; font-weight: bold; color: var(--text); margin-bottom: 4px;">Why This Team Wins</div>
+        <div class="card-subtitle" style="color: var(--blue);">Market Microstructure Expertise + High-Velocity Execution</div>
+        <div class="card-body" style="font-size: 18px;">
+          <p>• <strong>Domain Depth Over Hype:</strong> Deep understanding of crypto perpetual swaps, funding rate mechanics, liquidation mechanics, and orderbook microstructure.</p>
+          <p>• <strong>Already Built, Not a Slide Dream:</strong> Unlike typical pitch decks asking for money to write the first line of code, daVIRA has an operational terminal indexing thousands of wallets right now.</p>
+          <p>• <strong>The India Moat:</strong> Access to premier IIT/NIT mathematical, quantitative, and systems engineering talent at a 75% cost advantage over Western competitors.</p>
+          <p>• <strong>Disciplined Execution Focus:</strong> Clear, methodical trajectory transitioning from high-margin intelligence into a multi-billion dollar market maker.</p>
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+    <!-- SLIDE 17: STRATEGIC CAPITAL DEPLOYMENT & MILESTONES -->
+    <div class="slide" data-index="17">
+      <div class="brand">daVIRA</div>
+      <div class="slide-num">17 / 17</div>
+      <div class="category-label">16 / Strategic Partnership</div>
+      <div class="slide-title">Capital Deployment, Milestones &amp; Global Ambition</div>
+
+      <div class="card" style="left: 64px; top: 210px; width: 560px; height: 435px; border-color: var(--green);">
+        <div class="card-title">Strategic Capital Deployment</div>
+        <div class="card-subtitle" style="color: var(--green);">Institutional Seed Round with Strategic Venture Partners</div>
+        <div class="card-body" style="font-size: 18px;">
+          <p>• <strong>45% Engineering &amp; Systems Architecture:</strong> Hiring elite Rust/Node systems engineers, protocol indexing specialists, and quantitative researchers.</p>
+          <p>• <strong>30% High-Throughput Node Infra &amp; LLM Compute:</strong> Deploying dedicated validator RPC nodes (Solana, Hyperliquid, Base) and fine-tuned LLM inference clusters.</p>
+          <p>• <strong>15% Prop Trading &amp; Market Making Sandbox:</strong> Initial liquidity pool and risk reserve for live delta-neutral quoting and flow-signal execution.</p>
+          <p>• <strong>10% Legal, Global Structuring &amp; Compliance:</strong> Establishing corporate and regulatory entities across India, GIFT City, and international financial hubs.</p>
+        </div>
+      </div>
+
+      <div class="card" style="left: 656px; top: 210px; width: 560px; height: 435px; border-color: var(--amber);">
+        <div class="card-title">18-Month Disciplined Milestones</div>
+        <div class="card-subtitle" style="color: var(--amber);">Verifiable Execution Checkpoints</div>
+        <div class="card-body" style="font-size: 18px;">
+          <p><strong>✔ M1 – M3: Multi-Chain &amp; LLM Alpha Launch</strong><br>
+          Expand tracking to Solana &amp; Arbitrum; launch conversational natural language 'Everything a prompt away' interface.</p>
+          <p><strong>✔ M4 – M6: Institutional Prop Desk Pilot</strong><br>
+          Onboard 50+ global prop desks and quant funds on daVIRA Terminal; scale $10/mo retail and enterprise tiers to $100k MRR.</p>
+          <p><strong>✔ M7 – M12: daVIRA Capital (Prop Desk Launch)</strong><br>
+          Deploy internal systematic trading strategies exploiting our own flow leads and funding rate basis arbitrage.</p>
+          <p><strong>✔ M13 – M18: Algorithmic Market Making Rollout</strong><br>
+          Launch automated quoting engine across Hyperliquid &amp; top DEXs ('Wintermute of India').</p>
+        </div>
+      </div>
+
+      <div class="footer">daVIRA Intelligence &nbsp;·&nbsp; Institutional Seed Presentation &nbsp;·&nbsp; Confidential</div>
+    </div>
+
+  </div>
+
+  <!-- Navigation Helper -->
+  <div class="nav-overlay">
+    <button class="nav-btn" onclick="prevSlide()" title="Previous slide (Left Arrow)">❮</button>
+    <span id="slideIndicator">01 / 17</span>
+    <button class="nav-btn" onclick="nextSlide()" title="Next slide (Right Arrow)">❯</button>
+    <a href="/daVIRA_Pitch_Deck.pdf" class="pdf-link" target="_blank" download>PDF ⭳</a>
+    <a href="/daVIRA_Pitch_Deck.pptx" class="pdf-link" target="_blank" download>PPTX ⭳</a>
+  </div>
+
+  <script>
+    let current = 1;
+    const total = 17;
+
+    function show(n) {
+      if (n < 1) n = 1;
+      if (n > total) n = total;
+      current = n;
+
+      document.querySelectorAll('.slide').forEach((s) => {
+        s.classList.remove('active');
+        if (parseInt(s.getAttribute('data-index')) === current) {
+          s.classList.add('active');
+        }
+      });
+
+      document.getElementById('slideIndicator').innerText =
+        `${current.toString().padStart(2, '0')} / ${total.toString().padStart(2, '0')}`;
+    }
+
+    function nextSlide() { if (current < total) show(current + 1); }
+    function prevSlide() { if (current > 1) show(current - 1); }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        prevSlide();
+      } else if (e.key.toLowerCase() === 'f') {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+      }
+    });
+  </script>
+</body>
+</html>
