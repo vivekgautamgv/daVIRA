@@ -35,7 +35,7 @@ npm start
 
 | Area                  | Working V1 behavior                                                                                                                                                                                |
 | --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Landing page          | Product explanation, live cohort preview, methodology, links into the workspace. $5/month is labeled a future pricing target.                                                                      |
+| Landing page          | Product explanation, live cohort preview, methodology, links into the workspace. $10/month is labeled a future pricing target.                                                                      |
 | Smart-money desk      | Automatic research sample of up to 40 profitable leaderboard wallets plus up to 20 user-followed wallets. Per-asset long/short exposure, concentration, source wallet drill-down, movement ledger. |
 | Heavy wallet screener | 2,000 leaderboard wallets plus indexed discoveries; quality, holding time, closed-trade count, exposure and asset filters; three table views; saved screens, CSV export, three-wallet comparison.  |
 | Coin flows            | 1H/6H/24H/7D opening and closing notional, split into long/short components, timeline and source-wallet attribution. These are position flows, not collateral transfers.                           |
@@ -139,3 +139,12 @@ See [the detailed product and deployment plan](docs/PRODUCT_AND_DEPLOYMENT_PLAN.
 ## Deliberately later than V1
 
 Full-network historical wallet indexing; externally validated skill/risk scores and complete historical trade reconstruction; actual cross-chain capital flows; full builder-wallet/RWA aggregation; automated copy execution; calibrated forecasts; commercial news/social coverage; customer accounts, billing and public production deployment. These are not silently simulated in the current product.
+
+
+### Daily wallet evidence (September 2026)
+
+Daily discovery freezes the first fresh leaderboard observation per UTC date. Rank is based on reported 30D PnL, with deterministic address ordering for ties. It compares only consecutive UTC dates. New entrants and exits refer to this bounded leaderboard universe, not first-ever trades or wallets becoming inactive. Daily snapshots do not expire automatically; monitor storage as history grows. Source timestamps describe local retrieval time, not a guaranteed upstream publication time.
+
+The screener includes rank risers, new entrants, max equity, minimum episode win rate, last-execution recency and sample-check filters. Profiles show the last 14 captured daily observations available in the database, immutable reported PnL, source time, execution freshness, response cap and continuity checks. Missing leaderboard metrics remain null. Sample checks are not proof of complete history or a calibrated confidence score.
+
+Copy candidates additionally require fresh execution evidence, zero detected position gaps and a verified latest response below the 2,000-fill cap. The pre-move research column is reserved and has no score until a methodology is supplied and validated. External wallet labels and commercial Arkham/Binance ingestion are not implemented in this release.

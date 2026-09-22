@@ -1,3 +1,4 @@
+import { initDailyWallets } from "./daily-wallets.mjs";
 import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
@@ -28,6 +29,7 @@ CREATE TABLE IF NOT EXISTS wallet_analysis (address TEXT PRIMARY KEY,value TEXT 
 CREATE TABLE IF NOT EXISTS analysis_queue (address TEXT PRIMARY KEY,priority INTEGER NOT NULL DEFAULT 0,queued_at INTEGER NOT NULL,attempts INTEGER NOT NULL DEFAULT 0,error TEXT);
 CREATE TABLE IF NOT EXISTS saved_screens (id TEXT PRIMARY KEY,name TEXT NOT NULL,filters TEXT NOT NULL,created_at INTEGER NOT NULL);
 PRAGMA optimize;`);
+initDailyWallets(db);
 export function cached(key) {
   const row = db.prepare("SELECT * FROM cache WHERE key=?").get(key);
   return row

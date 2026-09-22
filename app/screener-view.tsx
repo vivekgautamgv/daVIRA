@@ -57,6 +57,10 @@ const defaults = {
   coin: "",
   sector: "all",
   minEquity: "0",
+  maxEquity: "",
+  minWinRate: "",
+  maxInactiveHours: "",
+  evidenceOnly: false,
   minPnl: "",
   minScore: "",
   minTrades: "",
@@ -70,6 +74,8 @@ function matchesPreset(w: any, preset: string) {
   const a = w.analysis,
     s = a?.stats,
     risk = a?.risk;
+  if (preset === "movers") return w.daily?.rankChange > 0;
+  if (preset === "entrants") return w.daily?.status === "entered";
   if (preset === "consistent") return w.pnl7d > 0 && w.pnl30d > 0;
   if (preset === "quality") return s?.score >= 60 && s?.completeTrades >= 10;
   if (preset === "rwa")
@@ -89,6 +95,8 @@ function matchesPreset(w: any, preset: string) {
 }
 const presetNotes: Record<string, string> = {
   all: "Full discovery universe",
+  movers: "Higher rank than yesterday · 30D PnL",
+  entrants: "New to today’s observed ranking",
   consistent: "Positive in both periods",
   quality: "At least 10 complete episodes",
   rwa: "Recently active · verified funded venue",
@@ -136,7 +144,22 @@ export default function Screener({
         return false;
       if (Number(f.minEquity) > 0 && !(w.equity >= Number(f.minEquity)))
         return false;
-      if (f.minPnl && !(w.pnl30d >= Number(f.minPnl))) return false;
+      if (f.maxEquity && !(w.equity != null && w.equity <= Number(f.maxEquity)))
+        return false;
+      if (
+        f.minWinRate &&
+        !(s?.winRate != null && s.winRate >= Number(f.minWinRate))
+      )
+        return false;
+      if (
+        f.maxInactiveHours &&
+        !(a?.coverage?.last > Date.now() - Number(f.maxInactiveHours) * 3600000)
+      )
+        return false;
+      if (f.evidenceOnly && w.evidence?.status !== "Sample checks passed")
+        return false;
+      if (f.minPnl && !(w.pnl30d != null && w.pnl30d >= Number(f.minPnl)))
+        return false;
       if (f.minScore && !(s?.score !== null && s?.score >= Number(f.minScore)))
         return false;
       if (f.minTrades && !(s?.completeTrades >= Number(f.minTrades)))
@@ -169,13 +192,15 @@ export default function Screener({
       return true;
     });
     const value = (w: any) =>
-      f.sort === "quality"
-        ? (w.analysis?.stats.score ?? -Infinity)
-        : f.sort === "copy"
-          ? (w.analysis?.copy.score ?? -Infinity)
-          : f.sort === "winrate"
-            ? (w.analysis?.stats.winRate ?? -Infinity)
-            : (w[f.sort] ?? -Infinity);
+      f.sort === "rankChange"
+        ? (w.daily?.rankChange ?? -Infinity)
+        : f.sort === "quality"
+          ? (w.analysis?.stats.score ?? -Infinity)
+          : f.sort === "copy"
+            ? (w.analysis?.copy.score ?? -Infinity)
+            : f.sort === "winrate"
+              ? (w.analysis?.stats.winRate ?? -Infinity)
+              : (w[f.sort] ?? -Infinity);
     return filtered.sort((a: any, b: any) => value(b) - value(a));
   }, [r.data, f]);
   const picked = selected
@@ -183,6 +208,8 @@ export default function Screener({
       .filter(Boolean),
     presets = [
       ["all", "All wallets"],
+      ["movers", "Rank risers"],
+      ["entrants", "New entrants"],
       ["consistent", "Profitable 7D + 30D"],
       ["quality", "Quality ≥ 60"],
       ["rwa", "RWA traders"],
@@ -284,6 +311,43 @@ export default function Screener({
           Refresh
         </button>
       </div>
+      <section className="panel daily-discovery">
+        <div>
+          <span className="eyebrow">DAILY DISCOVERY / UTC</span>
+          <h2>{r.data?.daily?.day || "Daily ranking"}</h2>
+          <p>
+            {r.data?.daily?.capturedAt
+              ? `Frozen observation at ${time(r.data.daily.sourceAt)}`
+              : "Awaiting the first fresh leaderboard observation today"}
+          </p>
+        </div>
+        <div>
+          <strong>{r.data?.daily?.rows?.length ?? "—"}</strong>
+          <span>Ranked addresses</span>
+        </div>
+        <div>
+          <strong>
+            {r.data?.daily?.hasPrevious
+              ? r.data.daily.rows.filter((w: any) => w.status === "entered")
+                  .length
+              : "—"}
+          </strong>
+          <span>Entered since yesterday</span>
+        </div>
+        <div>
+          <strong>
+            {r.data?.daily?.hasPrevious && r.data.daily.capturedAt
+              ? r.data.daily.exited.length
+              : "—"}
+          </strong>
+          <span>Left observed ranking</span>
+        </div>
+        <p className="daily-note">
+          {r.data?.daily?.hasPrevious
+            ? "Rank compares reported 30D PnL snapshots, not daily returns. Leaving the list does not mean a wallet stopped trading."
+            : "Building a baseline. Changes appear after two consecutive UTC days of collection; missed days remain unavailable."}
+        </p>
+      </section>
       <div
         className="screen-presets category-presets"
         aria-label="Wallet research categories"
@@ -414,6 +478,9 @@ export default function Screener({
           <div className="advanced-filters">
             {[
               ["minEquity", "Min equity ($)"],
+              ["maxEquity", "Max equity ($)"],
+              ["minWinRate", "Min episode win rate (%)"],
+              ["maxInactiveHours", "Last execution within (hours)"],
               ["minPnl", "Min 30D PnL ($)"],
               ["minScore", "Min quality /100"],
               ["minTrades", "Min complete trades"],
@@ -430,6 +497,14 @@ export default function Screener({
                 />
               </label>
             ))}
+            <label className="check-label">
+              <input
+                type="checkbox"
+                checked={f.evidenceOnly}
+                onChange={(e) => update("evidenceOnly", e.target.checked)}
+              />
+              Sample checks passed
+            </label>
             <label className="check-label">
               <input
                 type="checkbox"
@@ -471,6 +546,7 @@ export default function Screener({
               value={f.sort}
               onChange={(e) => update("sort", e.target.value)}
             >
+              <option value="rankChange">Daily rank improvement</option>
               <option value="pnl30d">30D PnL</option>
               <option value="pnl7d">7D PnL</option>
               <option value="equity">Equity</option>
@@ -486,6 +562,14 @@ export default function Screener({
               <tr>
                 <th aria-label="Compare" />
                 <th>Trader / wallet</th>
+                <th title="Coin accounting for at least 60% of observed execution turnover; concentration does not establish profitability.">
+                  Specialist coin
+                </th>
+                <th>Daily 30D-PnL rank</th>
+                <th>Evidence</th>
+                <th title="Historical pre-move methodology will be added after validation">
+                  Pre-move research
+                </th>
                 <th>30D PnL ↕</th>
                 <th>Main / reported equity · builder equity</th>
                 {f.view === "performance" ? (
@@ -500,8 +584,6 @@ export default function Screener({
                   </>
                 ) : f.view === "rwa" ? (
                   <>
-                    <th>Main specialization</th>
-                    <th>Top coin share</th>
                     <th>RWA turnover share</th>
                     <th>RWA markets</th>
                     <th>Live RWA positions</th>
@@ -551,6 +633,60 @@ export default function Screener({
                           {w.tracked ? " · followed" : ""}
                         </small>
                       </Link>
+                    </td>
+                    <td>
+                      {a?.coins[0]?.volumeShare >= 60 ? (
+                        <>
+                          <Link
+                            className="text-link"
+                            href={`/coins?coin=${encodeURIComponent(a.coins[0].coin)}`}
+                          >
+                            <b>{a.coins[0].coin}</b>
+                          </Link>
+                          <small className="cell-sub">
+                            {a.coins[0].volumeShare.toFixed(1)}% of turnover
+                          </small>
+                        </>
+                      ) : (
+                        <span className="muted">
+                          {a?.coins?.length
+                            ? "Mixed allocation"
+                            : "Not analyzed"}
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      {w.daily ? (
+                        <>
+                          <b>#{w.daily.rank}</b>
+                          <small className="cell-sub">
+                            {w.daily.status === "baseline"
+                              ? "Baseline"
+                              : w.daily.status === "entered"
+                                ? "New entrant"
+                                : w.daily.rankChange > 0
+                                  ? `↑ ${w.daily.rankChange}`
+                                  : w.daily.rankChange < 0
+                                    ? `↓ ${Math.abs(w.daily.rankChange)}`
+                                    : "Unchanged"}
+                          </small>
+                        </>
+                      ) : (
+                        "—"
+                      )}
+                    </td>
+                    <td title={w.evidence?.issues?.join(" · ")}>
+                      <span className="sample-tag">
+                        {w.evidence?.status || "Not indexed"}
+                      </span>
+                    </td>
+                    <td>
+                      <span
+                        className="muted"
+                        title="Reserved for historical positioning before market moves. No score or classification is available yet."
+                      >
+                        Methodology pending
+                      </span>
                     </td>
                     <td
                       title={w.pnl30dSource}
@@ -604,12 +740,6 @@ export default function Screener({
                       </>
                     ) : f.view === "rwa" ? (
                       <>
-                        <td>{a?.coins[0]?.coin || "—"}</td>
-                        <td>
-                          {a?.coins[0]
-                            ? `${a.coins[0].volumeShare.toFixed(1)}%`
-                            : "—"}
-                        </td>
                         <td>{a ? `${a.rwa.share.toFixed(1)}%` : "—"}</td>
                         <td>
                           <div className="coin-tags">

@@ -1,4 +1,6 @@
-import { cached, saveCache } from "./db.mjs";
+import { captureDailyWallets } from "./daily-wallets.mjs";
+import { reportedNumber } from "./leaderboard-values.mjs";
+import { db, cached, saveCache } from "./db.mjs";
 export const health = {
   startedAt: Date.now(),
   lastMarket: 0,
@@ -121,7 +123,7 @@ export async function markets() {
   return result;
 }
 export async function leaderboard() {
-  return resource("leaderboard", 6 * 3600000, async () => {
+  const result = await resource("leaderboard", 6 * 3600000, async () => {
     const r = await fetch(
       "https://stats-data.hyperliquid.xyz/Mainnet/leaderboard",
       { signal: AbortSignal.timeout(25000) },
@@ -134,17 +136,26 @@ export async function leaderboard() {
         return {
           address: row.ethAddress.toLowerCase(),
           name: row.displayName || null,
-          equity: Number(row.accountValue),
-          pnl1d: Number(w.day?.pnl || 0),
-          pnl7d: Number(w.week?.pnl || 0),
-          pnl30d: Number(w.month?.pnl || 0),
-          roi30d: Number(w.month?.roi || 0) * 100,
-          volume30d: Number(w.month?.vlm || 0),
+          equity: reportedNumber(row.accountValue),
+          pnl1d: reportedNumber(w.day?.pnl),
+          pnl7d: reportedNumber(w.week?.pnl),
+          pnl30d: reportedNumber(w.month?.pnl),
+          roi30d:
+            reportedNumber(w.month?.roi) == null
+              ? null
+              : reportedNumber(w.month?.roi) * 100,
+          volume30d: reportedNumber(w.month?.vlm),
         };
       })
-      .sort((a, b) => b.pnl30d - a.pnl30d)
+      .sort(
+        (a, b) =>
+          (b.pnl30d ?? -Infinity) - (a.pnl30d ?? -Infinity) ||
+          a.address.localeCompare(b.address),
+      )
       .slice(0, 2000);
   });
+  captureDailyWallets(db, result);
+  return result;
 }
 export async function candles(coin, interval = "1h") {
   return resource(`candles:${coin}:${interval}`, 60000, () =>

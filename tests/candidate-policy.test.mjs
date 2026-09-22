@@ -10,11 +10,13 @@ const qualified = () => ({
     allTime: { days: 100, last: now, pnl: 5000 },
   },
   updatedAt: now,
+  fillsFetchedAt: now,
+  latestResponseCount: 100,
   positionsAt: now,
   positionsStale: false,
   risk: { mainEquity: 1000 },
   builderCoverage: [],
-  coverage: { last: now - 1000 },
+  coverage: { last: now - 1000, gaps: 0 },
   stats: {
     completeTrades: 30,
     activeDays: 10,
@@ -78,5 +80,11 @@ test("missing, losing, short and stale reported history excludes copy eligibilit
     const a = qualified();
     change(a);
     assert.equal(candidatePolicy(a, now).eligible, false);
+  }
+});
+
+test("copy candidates reject missing, stale, capped and discontinuous execution evidence", () => {
+  for (const patch of [{ fillsFetchedAt: null }, { fillsFetchedAt: now - 7200000 }, { latestResponseCount: 2000 }, { coverage: { last: now, gaps: 1 } }]) {
+    assert.equal(candidatePolicy({ ...qualified(), ...patch }, now).eligible, false);
   }
 });

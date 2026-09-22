@@ -395,7 +395,7 @@ export default function Landing() {
           </h2>
           <p>
             The value is the time you save connecting the dots. Test the local
-            edition today; the hosted Core plan targets $5 per month.
+            edition today; the hosted Core plan targets $10 per month.
           </p>
           <details>
             <summary>What is available now?</summary>
@@ -425,10 +425,10 @@ export default function Landing() {
         <div className="core-price">
           <div>
             <span>CORE / PLANNED HOSTED EDITION</span>
-            <span className="price-tag">$5 target</span>
+            <span className="price-tag">$10 target</span>
           </div>
           <strong>
-            $5<small>/ month</small>
+            $10<small>/ month</small>
           </strong>
           <p>
             One research workflow.

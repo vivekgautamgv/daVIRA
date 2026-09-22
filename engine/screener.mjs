@@ -1,3 +1,5 @@
+import { dailyWallets, walletDailyHistory } from "./daily-wallets.mjs";
+import { walletEvidence } from "./wallet-evidence.mjs";
 import { marketRead } from "./market-read.mjs";
 import { portfolioEvidence } from "./portfolio-evidence.mjs";
 import { candidatePolicy } from "./candidate-policy.mjs";
@@ -247,6 +249,8 @@ export function getAnalysis(address) {
       ? {
           ...JSON.parse(row.value),
           eligibility: candidatePolicy(JSON.parse(row.value)),
+          evidence: walletEvidence(JSON.parse(row.value)),
+          dailyHistory: walletDailyHistory(db, address),
         }
       : null,
     updatedAt: row?.updated_at || null,
@@ -289,11 +293,15 @@ export async function screener() {
         roi30d: null,
         volume30d: null,
       });
+  const daily = dailyWallets(db);
+  const ranks = new Map(daily.rows.map((w) => [w.address, w]));
   const data = rows.map((w) => {
     const a = analyses.get(w.address),
       account = cached(`account:${w.address}`);
     return {
       ...w,
+      daily: ranks.get(w.address) || null,
+      evidence: walletEvidence(a),
       pnl30d:
         w.pnl30d ??
         (a?.performance?.month?.days >= 29 ? a.performance.month.pnl : null),
@@ -333,6 +341,7 @@ export async function screener() {
   });
   return {
     data,
+    daily,
     updatedAt: leaders.updatedAt,
     stale: leaders.stale,
     indexing: analysisStatus(),

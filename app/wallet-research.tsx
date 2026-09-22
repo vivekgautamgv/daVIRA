@@ -11,6 +11,72 @@ export default function WalletResearch({ address }: { address: string }) {
   return (
     <>
       {d && <ReportedPerformance analysis={d} />}
+      {d?.evidence && (
+        <section className="panel research-card">
+          <span className="eyebrow">SOURCE & HISTORY EVIDENCE</span>
+          <h2>{d.evidence.status}</h2>
+          <p>
+            Hyperliquid public execution history · retrieved{" "}
+            {time(d.evidence.fetchedAt)} · analysis version {d.analyticsVersion}
+          </p>
+          <div className="evidence-checks">
+            {d.evidence.checks.map((c: any) => (
+              <div key={c.label}>
+                <span className={c.pass ? "positive" : "muted"}>
+                  {c.pass ? "Pass" : "Review"}
+                </span>
+                <span>{c.label}</span>
+              </div>
+            ))}
+          </div>
+          <p className="muted">
+            Observed executions: {time(d.evidence.first)} to{" "}
+            {time(d.evidence.last)}. {d.evidence.scope}
+          </p>
+          <details>
+            <summary>Daily reported PnL observations</summary>
+            {d.dailyHistory?.length ? (
+              <div className="table-scroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>UTC date</th>
+                      <th>Universe rank</th>
+                      <th>Reported 30D PnL</th>
+                      <th>Reported equity</th>
+                      <th>Source time</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {d.dailyHistory.map((h: any) => (
+                      <tr key={h.day}>
+                        <td>{h.day}</td>
+                        <td>#{h.rank}</td>
+                        <td>{money(h.pnl30d)}</td>
+                        <td>{h.equity == null ? "—" : money(h.equity)}</td>
+                        <td>{time(h.sourceAt)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p>
+                No daily observations for this address yet. Unobserved days are
+                not reconstructed.
+              </p>
+            )}
+          </details>
+          <details>
+            <summary>Pre-move research · methodology pending</summary>
+            <p>
+              Reserved for historical positioning before large moves. Future
+              results will include entry timestamps, comparison windows,
+              repeatability and false positives.
+            </p>
+          </details>
+        </section>
+      )}
       <section className="panel analysis-header">
         <div className="panel-head">
           <div>

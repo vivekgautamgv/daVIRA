@@ -17,6 +17,16 @@ export function candidatePolicy(a, now = Date.now()) {
     );
   const recent = a.coverage?.last > now - 48 * 3600000;
   const reasons = [];
+  if (!(
+    Number.isFinite(a.fillsFetchedAt) &&
+    a.fillsFetchedAt <= now &&
+    now - a.fillsFetchedAt < 3600000
+  ))
+    reasons.push("Fresh execution evidence required");
+  if (a.coverage?.gaps !== 0)
+    reasons.push("Execution continuity must be checked without detected gaps");
+  if (!(Number.isFinite(a.latestResponseCount) && a.latestResponseCount < 2000))
+    reasons.push("Latest execution response may be truncated or is unverified");
   const p = a.performance;
   if (!p || p.stale || !(now - p.updatedAt < 3600000))
     reasons.push("Fresh reported performance unavailable");
