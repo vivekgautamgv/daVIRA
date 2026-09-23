@@ -44,7 +44,11 @@ export function Score({
           style={{
             width: `${value}%`,
             background:
-              value >= 65 ? "#b4d993" : value < 40 ? "#c4858a" : "#a7b8c3",
+              value >= 65
+                ? "var(--positive)"
+                : value < 40
+                  ? "var(--negative)"
+                  : "var(--muted)",
           }}
         />
       </span>

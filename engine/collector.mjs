@@ -1,3 +1,4 @@
+import { pollWatchActivity } from "./watch-activity.mjs";
 import {
   db,
   watchlist,
@@ -224,8 +225,14 @@ export function startCollector() {
   void poll().catch((e) => {
     health.failures.poll = { message: e.message, time: Date.now() };
   });
+  void pollWatchActivity();
   timers.push(
-    setInterval(() => void processAnalysisQueue().catch(() => {}), 12000),
+    setInterval(() => void pollWatchActivity(), 15000),
+    setInterval(() => {
+      // Preserve request headroom for followed-wallet monitoring.
+      if (watchlist().length && health.weight > 300) return;
+      void processAnalysisQueue().catch(() => {});
+    }, 12000),
     setInterval(() => void poll().catch(() => {}), 60000),
     setInterval(cleanup, 300000),
     setInterval(() => {

@@ -1,15 +1,20 @@
 "use client";
 import { useEffect, useState } from "react";
-export default function ThemeToggle() {
-  const [theme, setTheme] = useState("dark");
+import { Moon, Sun } from "lucide-react";
+export default function ThemeToggle({
+  defaultTheme = "light",
+}: {
+  defaultTheme?: "light" | "dark";
+}) {
+  const [theme, setTheme] = useState(defaultTheme);
   useEffect(() => {
     try {
       const saved = localStorage.getItem("davira-theme");
-      const t = saved === "light" ? "light" : "dark";
+      const t = saved === "light" || saved === "dark" ? saved : defaultTheme;
       setTheme(t);
       document.documentElement.dataset.theme = t;
     } catch {}
-  }, []);
+  }, [defaultTheme]);
   return (
     <button
       className="button theme-toggle"
@@ -23,7 +28,12 @@ export default function ThemeToggle() {
         } catch {}
       }}
     >
-      {theme === "dark" ? "☀ Light" : "☾ Dark"}
+      {theme === "dark" ? (
+        <Sun aria-hidden="true" />
+      ) : (
+        <Moon aria-hidden="true" />
+      )}
+      {theme === "dark" ? "Light" : "Dark"}
     </button>
   );
 }

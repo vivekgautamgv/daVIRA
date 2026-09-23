@@ -1,7 +1,8 @@
 "use client";
+import BrandMark from "./brand-mark";
 import ThemeToggle from "./theme-toggle";
 import Link from "next/link";
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useId } from "react";
 import {
   Activity,
   ArrowUpRight,
@@ -25,6 +26,8 @@ import {
   ArrowLeftRight,
   Layers3,
   Copy,
+  X,
+  Menu,
 } from "lucide-react";
 import {
   AreaChart,
@@ -128,14 +131,15 @@ export function Chart({
   data: any[];
   height?: number;
 }) {
+  const gradientId = useId();
   return (
     <div style={{ width: "100%", height, minWidth: 0 }}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data}>
           <defs>
-            <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#b9ed68" stopOpacity={0.2} />
-              <stop offset="100%" stopColor="#b9ed68" stopOpacity={0} />
+            <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.2} />
+              <stop offset="100%" stopColor="var(--accent)" stopOpacity={0} />
             </linearGradient>
           </defs>
           <XAxis
@@ -149,15 +153,15 @@ export function Chart({
             minTickGap={65}
             axisLine={false}
             tickLine={false}
-            tick={{ fill: "#7b858b", fontSize: 12 }}
+            tick={{ fill: "var(--muted)", fontSize: 12 }}
           />
           <YAxis hide domain={["auto", "auto"]} />
           <Tooltip
             contentStyle={{
-              background: "#181e22",
-              border: "1px solid #343d41",
+              background: "var(--panel)",
+              border: "1px solid var(--line)",
               borderRadius: 8,
-              color: "#eee",
+              color: "var(--text)",
             }}
             labelFormatter={(v) => new Date(v).toLocaleString()}
             formatter={(v: any) => [price(Number(v)), "Value"]}
@@ -165,9 +169,9 @@ export function Chart({
           <Area
             type="monotone"
             dataKey="c"
-            stroke="#b9ed68"
+            stroke="var(--accent)"
             strokeWidth={2}
-            fill="url(#chartFill)"
+            fill={`url(#${gradientId})`}
             isAnimationActive={false}
           />
         </AreaChart>
@@ -186,29 +190,43 @@ export default function Terminal({
     [menu, setMenu] = useState(false);
   const data = overview.data,
     markets = data?.markets || [];
+  useEffect(() => {
+    if (!menu) return;
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenu(false);
+    };
+    document.addEventListener("keydown", close);
+    return () => document.removeEventListener("keydown", close);
+  }, [menu]);
   return (
     <div className="terminal">
-      <aside className={`sidebar ${menu ? "open" : ""}`}>
+      <aside
+        id="workspace-navigation"
+        className={`sidebar ${menu ? "open" : ""}`}
+      >
         <Link className="brand" href="/">
           <span className="brand-symbol">
-            d<span>V</span>
+            <BrandMark />
           </span>
           daVIRA<span className="version">/ 01</span>
         </Link>
         <div className="workspace">
-          <span className="workspace-avatar">V</span>
+          <span className="workspace-avatar">
+            <BrandMark />
+          </span>
           <div>
             Personal workspace<small>Local edition</small>
           </div>
-          <ChevronDown size={14} />
+          <span className="workspace-edition">01</span>
         </div>
         <div className="nav-label">INTELLIGENCE</div>
-        <nav>
+        <nav aria-label="Research workspace">
           {nav.map(([key, label, Icon, href], i) => (
             <Link
               onClick={() => setMenu(false)}
               href={href}
               key={key}
+              aria-current={key === view ? "page" : undefined}
               className={`${key === view ? "active" : ""} ${i === 7 ? "nav-separated" : ""}`}
             >
               <Icon size={18} />
@@ -236,14 +254,23 @@ export default function Terminal({
           </a>
         </div>
       </aside>
+      {menu && (
+        <button
+          className="navigation-backdrop"
+          aria-label="Close navigation"
+          onClick={() => setMenu(false)}
+        />
+      )}
       <main className="main">
         <header className="topbar">
           <button
             className="mobile-toggle icon-button"
             onClick={() => setMenu(!menu)}
-            aria-label="Toggle navigation"
+            aria-label={menu ? "Close navigation" : "Open navigation"}
+            aria-expanded={menu}
+            aria-controls="workspace-navigation"
           >
-            <LayoutDashboard size={20} />
+            {menu ? <X size={20} /> : <Menu size={20} />}
           </button>
           <div className="breadcrumb">
             Workspace <span>/</span>

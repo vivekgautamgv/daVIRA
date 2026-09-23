@@ -25,7 +25,7 @@ npm start
 
 ## Latest product improvements
 
-- Animated original landing page with a real data preview, interactive opening/closing explanation, reduced-motion support and motion pause.
+- Institutional landing page with ivory/graphite themes, an animated intelligence diagram, live wallet and coin previews, interactive research playbooks and execution-cost illustration. Dedicated sections explain planned pre-move analysis, wallet continuity, AI research and the three-phase vision; future capabilities and target pricing remain labeled.
 - Category-led discovery with counts, eligibility explanations and direct wallet lookup.
 - Coin flows now offer large-wallet, quality, watchlist and all-indexed cohorts.
 - Research layer decomposes entry/exit activity, wallet agreement, largest-contributor concentration and baseline-gated activity pace.
@@ -148,3 +148,17 @@ Daily discovery freezes the first fresh leaderboard observation per UTC date. Ra
 The screener includes rank risers, new entrants, max equity, minimum episode win rate, last-execution recency and sample-check filters. Profiles show the last 14 captured daily observations available in the database, immutable reported PnL, source time, execution freshness, response cap and continuity checks. Missing leaderboard metrics remain null. Sample checks are not proof of complete history or a calibrated confidence score.
 
 Copy candidates additionally require fresh execution evidence, zero detected position gaps and a verified latest response below the 2,000-fill cap. The pre-move research column is reserved and has no score until a methodology is supplied and validated. External wallet labels and commercial Arkham/Binance ingestion are not implemented in this release.
+
+### Watchlist activity
+
+The watchlist combines followed-wallet positions, fresh long/short exposure, pending main-DEX and spot orders, and persisted in-app order/fill/position alerts. Select one wallet or view the full list. Builder positions retain their own snapshot timestamps; stale positions are excluded from totals. Monitoring starts at the first activity check, avoiding a flood of historical order alerts.
+
+The collector rotates one wallet every 15 seconds, with a minimum 30-second interval per wallet. Rate limits and source caps can delay or omit events. The UI refreshes every 10 seconds and reports source failures. Alerts require the local collector to remain running; no browser push or off-device delivery is configured. Background wallet indexing yields request headroom to watchlist monitoring.
+
+### Coin positioning, behaviour and cohort research
+
+Select a coin on Coin inflow / outflow to open its positioning brief. This uses all indexed wallets independently of the flow-table cohort selector. It splits long entries/exits and short entries/covers, highlights concentration, and compares a later fresh position snapshot with the last observed execution direction. Same-direction snapshots cannot prove continuous holding.
+
+Six overlapping cohorts compare signed position-size votes: coin specialists, consistent traders, high-equity wallets, short-duration traders, longer-duration traders and the watchlist. Each address gets one vote; at least three addresses and a 34% imbalance are required for a directional reading. Current cohort membership is used, not historical membership. Ownership independence and predictive accuracy are not established.
+
+Behaviour research groups partial fills by order ID. Size flags require a 3x increase over the prior-order median, at least 10 baseline orders on three days, and fresh uncapped analysis without detected gaps. The baseline excludes the selected window and uses retained history of up to 30 days. Reversals and repeated opening/closing orders are descriptive events. Leverage-change and first-ever-coin-entry analysis are withheld without supporting history. Every view exposes its evidence and methodology.

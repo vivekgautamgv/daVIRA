@@ -1,4 +1,5 @@
 import "./globals.css";
+import "./brand.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -13,7 +14,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="light" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var theme=localStorage.getItem("davira-theme");document.documentElement.dataset.theme=theme==="dark"?"dark":"light"}catch{}`,
+          }}
+        />
+      </head>
       <body>{children}</body>
     </html>
   );

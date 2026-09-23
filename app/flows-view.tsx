@@ -19,6 +19,7 @@ import {
 } from "recharts";
 import Terminal, { useData, Empty, money, num, short } from "./terminal";
 import { DataState, time } from "./ui";
+import CoinIntelligence from "./coin-intelligence";
 import FlowResearch from "./flow-research";
 export default function Flows() {
   return (
@@ -134,6 +135,7 @@ function Content() {
           wallet executions.
         </p>
       </div>
+      <CoinIntelligence coin={coin} window={window} />
       <FlowResearch rows={d?.data || []} coin={coin} onSelect={setCoin} />
       <section className="panel">
         <div className="panel-head">
@@ -174,14 +176,14 @@ function Content() {
                   axisLine={false}
                   tickLine={false}
                   minTickGap={70}
-                  tick={{ fill: "#8c9ca4", fontSize: 11 }}
+                  tick={{ fill: "var(--muted)", fontSize: 11 }}
                 />
                 <YAxis hide />
                 <Tooltip
                   contentStyle={{
-                    background: "#172024",
-                    border: "1px solid #344147",
-                    color: "#eee",
+                    background: "var(--panel)",
+                    border: "1px solid var(--line)",
+                    color: "var(--text)",
                     fontSize: 12,
                   }}
                   labelFormatter={(v) => time(Number(v))}
@@ -190,9 +192,9 @@ function Content() {
                     n === "inflow" ? "Position inflow" : "Position outflow",
                   ]}
                 />
-                <ReferenceLine y={0} stroke="#425057" />
-                <Bar dataKey="inflow" fill="#a4cb87" maxBarSize={30} />
-                <Bar dataKey="outflow" fill="#b87e85" maxBarSize={30} />
+                <ReferenceLine y={0} stroke="var(--line-strong)" />
+                <Bar dataKey="inflow" fill="var(--positive)" maxBarSize={30} />
+                <Bar dataKey="outflow" fill="var(--negative)" maxBarSize={30} />
               </BarChart>
             </ResponsiveContainer>
           </div>

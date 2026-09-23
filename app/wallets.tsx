@@ -1,4 +1,5 @@
 "use client";
+import WatchlistSummary from "./watchlist-summary";
 import VenueBalances from "./venue-balances";
 import { useMemo, useState } from "react";
 import Link from "next/link";
@@ -217,7 +218,7 @@ export function Discover() {
 }
 
 export function Watchlist() {
-  const r = useData("watchlist"),
+  const r = useData("watchlist", 10000),
     action = useAction(),
     [address, setAddress] = useState(""),
     [label, setLabel] = useState("");
@@ -227,7 +228,7 @@ export function Watchlist() {
       <Heading
         eyebrow="YOUR OBSERVATION LIST"
         title="Watchlist"
-        text="Follow up to 20 wallets. Position changes are checked about once a minute."
+        text="Follow up to 20 wallets. Monitor their positions, orders and executed trades together."
       />
       <DataState resource={r} />
       <Feedback action={action} />
@@ -267,6 +268,7 @@ export function Watchlist() {
           Save wallet
         </button>
       </form>
+      <WatchlistSummary overview={r.data} />
       <section className="panel">
         <div className="panel-head">
           <h2>

@@ -1,3 +1,5 @@
+import { researchForCoin } from "./coin-research-store.mjs";
+import { watchOverview, pollWatchActivity } from "./watch-activity.mjs";
 import { createServer } from "node:http";
 import { timingSafeEqual, randomUUID } from "node:crypto";
 import { statSync } from "node:fs";
@@ -116,6 +118,11 @@ export const server = createServer(async (req, res) => {
       if (path === "/markets") return json(res, 200, await markets());
       if (path === "/intelligence") return json(res, 200, await intelligence());
       if (path === "/screener") return json(res, 200, await screener());
+      if (path === "/coin-research") {
+        const coin = (url.searchParams.get("coin") || "").trim().slice(0,40);
+        if (!coin) bad("Select a coin for research.");
+        return json(res,200,researchForCoin(coin,url.searchParams.get("window") || "24h"));
+      }
       if (path === "/flows")
         return json(
           res,
@@ -155,7 +162,7 @@ export const server = createServer(async (req, res) => {
       if (path.startsWith("/wallet/"))
         return json(res, 200, await wallet(addr(path.split("/")[2])));
       if (path === "/watchlist")
-        return json(res, 200, { data: readWatchlist() });
+        return json(res, 200, watchOverview());
       if (path === "/radar")
         return json(res, 200, {
           signals: db
@@ -307,11 +314,13 @@ export const server = createServer(async (req, res) => {
           "INSERT INTO watchlists VALUES(?,?,?) ON CONFLICT(address) DO UPDATE SET label=excluded.label",
         ).run(address, label, Date.now());
         void observeWallet(address).catch(() => {});
+        void pollWatchActivity();
         return json(res, 200, { ok: true });
       }
       if (path.startsWith("/watchlist/") && method === "DELETE") {
         const address = addr(path.split("/")[2]);
         db.prepare("DELETE FROM watchlists WHERE address=?").run(address);
+        db.prepare("DELETE FROM cache WHERE key IN (?,?)").run(`watch-activity:${address}`, `watch-scan:${address}`);
         if (
           !cached("research-cohort")?.data.wallets.some(
             (w) => w.address === address,

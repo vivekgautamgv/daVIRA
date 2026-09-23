@@ -27,6 +27,7 @@ for (const path of [
   "leaderboard",
   "screener",
   "flows",
+  "coin-research?coin=ETH&window=24h",
   "screens",
   "markets",
   "global-markets",
