@@ -25,6 +25,8 @@ CREATE TABLE IF NOT EXISTS movements (id TEXT PRIMARY KEY,address TEXT NOT NULL,
 CREATE TABLE IF NOT EXISTS wallet_fills (address TEXT NOT NULL,id TEXT NOT NULL,coin TEXT NOT NULL,time INTEGER NOT NULL,value TEXT NOT NULL,PRIMARY KEY(address,id));
 CREATE INDEX IF NOT EXISTS idx_wallet_fills_time ON wallet_fills(time);
 CREATE INDEX IF NOT EXISTS idx_wallet_fills_coin_time ON wallet_fills(coin,time);
+CREATE TABLE IF NOT EXISTS market_history (coin TEXT NOT NULL,bucket INTEGER NOT NULL,time INTEGER NOT NULL,price REAL NOT NULL,oi REAL NOT NULL,funding REAL,PRIMARY KEY(coin,bucket));
+CREATE INDEX IF NOT EXISTS idx_market_history_time ON market_history(coin,time);
 CREATE TABLE IF NOT EXISTS wallet_analysis (address TEXT PRIMARY KEY,value TEXT NOT NULL,updated_at INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS analysis_queue (address TEXT PRIMARY KEY,priority INTEGER NOT NULL DEFAULT 0,queued_at INTEGER NOT NULL,attempts INTEGER NOT NULL DEFAULT 0,error TEXT);
 CREATE TABLE IF NOT EXISTS saved_screens (id TEXT PRIMARY KEY,name TEXT NOT NULL,filters TEXT NOT NULL,created_at INTEGER NOT NULL);

@@ -1,6 +1,8 @@
 import { dailyWallets, walletDailyHistory } from "./daily-wallets.mjs";
 import { walletEvidence } from "./wallet-evidence.mjs";
-import { marketRead } from "./market-read.mjs";
+import { marketRead, analysisFresh, hasTokenRecord } from "./market-read.mjs";
+import { positioningBrief } from "./positioning-brief.mjs";
+import { marketContexts } from "./market-history.mjs";
 import { portfolioEvidence } from "./portfolio-evidence.mjs";
 import { candidatePolicy } from "./candidate-policy.mjs";
 import { db, cached, saveCache, watchlist, getSetting } from "./db.mjs";
@@ -415,10 +417,10 @@ export function flows(window = "24h", coin = "", cohort = "all") {
       .map((r) => [r.address, r.first]),
   );
   const where = coin ? " AND coin=?" : "",
-    args = coin ? [now - duration, coin] : [now - duration],
+    args = coin ? [now - duration, now, coin] : [now - duration, now],
     records = db
       .prepare(
-        `SELECT address,value FROM wallet_fills WHERE time>=?${where} ORDER BY time`,
+        `SELECT address,value FROM wallet_fills WHERE time>=? AND time<=?${where} ORDER BY time`,
       )
       .all(...args)
       .filter((r) => eligible(r.address));
@@ -498,6 +500,7 @@ export function flows(window = "24h", coin = "", cohort = "all") {
     b.outflow += x.longOut + x.shortOut;
     buckets.set(t, b);
   }
+  const context = marketContexts(cached("markets"), duration, now);
   const data = [...byCoin.values()]
       .map((c) => ({
         ...c,
@@ -518,6 +521,7 @@ export function flows(window = "24h", coin = "", cohort = "all") {
           { duration, historyStart },
         ),
       }))
+      .map((c) => ({ ...c, brief: positioningBrief(c, now), context: context.get(c.coin) || { status: "unavailable", reason: "Market history currently covers main DEX instruments" } }))
       .sort((a, b) => b.inflow + b.outflow - a.inflow - a.outflow),
     result = {
       data,
@@ -547,6 +551,9 @@ export function flows(window = "24h", coin = "", cohort = "all") {
         wallets: addresses.size,
         executions: records.length,
         indexedWallets: analysisStatus().indexed,
+        freshWallets: [...analyses.values()].filter(a => analysisFresh(a, now)).length,
+        historicalSpecialists: [...analyses.values()].filter(a => a.coins?.some(hasTokenRecord)).length,
+        queue: analysisStatus().queued,
         eligibleWallets: [...analyses.keys()].filter(eligible).length,
         cohortDefinition:
           cohort === "whales"

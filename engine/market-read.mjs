@@ -1,4 +1,9 @@
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+export const hasTokenRecord = (c) => !!c && c.completeTrades >= 10 && c.activeDays >= 3 && c.score >= 60 && c.netPnl > 0;
+export const analysisFresh = (a, now) => {
+  const at = a?.fillsFetchedAt ?? a?.updatedAt;
+  return Number.isFinite(at) && at <= now && now - at < 3600000;
+};
 // Evidence-gated positioning score; never a probability of future return.
 export function marketRead(wallets, analyses, now = Date.now()) {
   let gross = 0,
@@ -8,6 +13,7 @@ export function marketRead(wallets, analyses, now = Date.now()) {
     weighted = 0,
     weight = 0,
     qualified = 0,
+    historicalQualified = 0,
     fresh = 0,
     latest = 0;
   const volumes = [];
@@ -21,15 +27,13 @@ export function marketRead(wallets, analyses, now = Date.now()) {
     latest = Math.max(latest, w.lastExecution || 0);
     const a = analyses.get(w.address),
       c = a?.coins?.find((c) => c.coin === w.coin);
-    const isFresh = a && now - a.updatedAt < 3600000;
+    const isFresh = analysisFresh(a, now);
     if (isFresh) fresh++;
+    if (hasTokenRecord(c)) historicalQualified++;
     // Token-specific track record, one bounded vote per wallet; size cannot buy a larger vote.
     if (
       isFresh &&
-      c?.completeTrades >= 10 &&
-      c.activeDays >= 3 &&
-      c.score >= 60 &&
-      c.netPnl > 0
+      hasTokenRecord(c)
     ) {
       const q = clamp(c.score / 100, 0, 1);
       weighted += Math.sign(Number(w.positionDelta || 0)) * q;
@@ -86,6 +90,7 @@ export function marketRead(wallets, analyses, now = Date.now()) {
     action,
     reasons,
     qualified,
+    historicalQualified,
     fresh,
     count,
     topShare: topShare * 100,

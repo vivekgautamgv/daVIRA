@@ -2,6 +2,7 @@ import { db, cached, saveCache, watchlist } from "./db.mjs";
 import { leaderboard, markets, health } from "./upstream.mjs";
 import { observeWallet } from "./wallet.mjs";
 import { enqueueAnalysis } from "./screener.mjs";
+import { hasTokenRecord } from "./market-read.mjs";
 let running = false;
 export async function refreshCohort() {
   if (running) return;
@@ -24,6 +25,10 @@ export async function refreshCohort() {
       .filter((w) => w.equity >= 1000 && w.volume30d >= 100000)
       .slice(0, 200);
     for (const w of discovery) enqueueAnalysis(w.address);
+    // Prioritize demonstrated token records below followed-wallet monitoring.
+    for (const row of db.prepare("SELECT address,value FROM wallet_analysis").all()) {
+      if (JSON.parse(row.value).coins?.some(hasTokenRecord)) enqueueAnalysis(row.address, 3);
+    }
     for (const w of watchlist()) enqueueAnalysis(w.address, 5);
     for (let i = 0; i < selected.length; i += 3)
       await Promise.allSettled(

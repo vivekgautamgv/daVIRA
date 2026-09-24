@@ -1,4 +1,5 @@
 import { pollWatchActivity } from "./watch-activity.mjs";
+import { recordMarkets } from "./market-history.mjs";
 import {
   db,
   watchlist,
@@ -172,6 +173,7 @@ export async function poll() {
   polling = true;
   try {
     const m = await markets();
+    recordMarkets(m);
     if (!m.stale) evaluateRules(m.data);
     await refreshCohort();
     queueRwaCandidates();
@@ -205,6 +207,7 @@ export function cleanup() {
   cleanupAnalysis();
   const now = Date.now();
   db.prepare("DELETE FROM trades WHERE time<?").run(now - 86400000);
+  db.prepare("DELETE FROM market_history WHERE time<?").run(now - 3 * 86400000);
   db.prepare(
     "DELETE FROM trades WHERE id IN (SELECT id FROM trades ORDER BY time DESC LIMIT -1 OFFSET 100000)",
   ).run();
