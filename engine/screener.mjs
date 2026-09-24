@@ -1,4 +1,6 @@
 import { dailyWallets, walletDailyHistory } from "./daily-wallets.mjs";
+import { recordCollection, pilotWallets } from "./coverage.mjs";
+import { selectAnalysisJob } from "./queue-policy.mjs";
 import { walletEvidence } from "./wallet-evidence.mjs";
 import { marketRead, analysisFresh, hasTokenRecord } from "./market-read.mjs";
 import { positioningBrief } from "./positioning-brief.mjs";
@@ -18,6 +20,7 @@ import {
   executionFlow,
 } from "./screener-math.mjs";
 let working = false;
+let priorityStreak = 0;
 export function refreshStoredAnalyses() {
   for (const row of db
     .prepare("SELECT address,value FROM wallet_analysis")
@@ -221,18 +224,18 @@ export async function analyzeWallet(address) {
 }
 export async function processAnalysisQueue() {
   if (working || getSetting("paused", false) || health.weight > 600) return;
-  const job = db
-    .prepare(
-      "SELECT * FROM analysis_queue WHERE queued_at<=? AND (attempts<3 OR queued_at<?) ORDER BY priority DESC,queued_at LIMIT 1",
-    )
-    .get(Date.now(), Date.now() - 1800000);
+  const job = selectAnalysisJob(db, Date.now(), priorityStreak);
   if (!job) return;
   working = true;
+  const startedAt = Date.now();
+  priorityStreak = job.priority > 0 ? priorityStreak + 1 : 0;
   try {
-    await analyzeWallet(job.address);
+    const analysis = await analyzeWallet(job.address);
+    recordCollection(job.address, startedAt, true, analysis);
     db.prepare("DELETE FROM analysis_queue WHERE address=?").run(job.address);
     delete health.failures.analysis;
   } catch (e) {
+    recordCollection(job.address, startedAt, false, null, e.message);
     db.prepare(
       "UPDATE analysis_queue SET attempts=attempts+1,error=?,queued_at=? WHERE address=?",
     ).run(e.message, Date.now() + 60000, job.address);
@@ -380,9 +383,11 @@ export function flows(window = "24h", coin = "", cohort = "all") {
       .map((r) => [r.address, JSON.parse(r.value)]),
   );
   const followed = new Set(watchlist().map((w) => w.address));
+  const pilot = cohort === "pilot" ? new Set(pilotWallets()) : null;
   const eligible = (address) => {
     const a = analyses.get(address);
     if (cohort === "watchlist") return followed.has(address);
+    if (cohort === "pilot") return pilot.has(address);
     if (cohort === "quality")
       return (
         a &&
@@ -521,7 +526,14 @@ export function flows(window = "24h", coin = "", cohort = "all") {
           { duration, historyStart },
         ),
       }))
-      .map((c) => ({ ...c, brief: positioningBrief(c, now), context: context.get(c.coin) || { status: "unavailable", reason: "Market history currently covers main DEX instruments" } }))
+      .map((c) => ({
+        ...c,
+        brief: positioningBrief(c, now),
+        context: context.get(c.coin) || {
+          status: "unavailable",
+          reason: "Market history currently covers main DEX instruments",
+        },
+      }))
       .sort((a, b) => b.inflow + b.outflow - a.inflow - a.outflow),
     result = {
       data,
@@ -551,18 +563,24 @@ export function flows(window = "24h", coin = "", cohort = "all") {
         wallets: addresses.size,
         executions: records.length,
         indexedWallets: analysisStatus().indexed,
-        freshWallets: [...analyses.values()].filter(a => analysisFresh(a, now)).length,
-        historicalSpecialists: [...analyses.values()].filter(a => a.coins?.some(hasTokenRecord)).length,
+        freshWallets: [...analyses.values()].filter((a) =>
+          analysisFresh(a, now),
+        ).length,
+        historicalSpecialists: [...analyses.values()].filter((a) =>
+          a.coins?.some(hasTokenRecord),
+        ).length,
         queue: analysisStatus().queued,
         eligibleWallets: [...analyses.keys()].filter(eligible).length,
         cohortDefinition:
-          cohort === "whales"
-            ? "Large wallets: latest analysis within one hour, with main DEX equity ≥ $100K or covered gross positions ≥ $1M. Historical flows use this current cohort."
-            : cohort === "quality"
-              ? "Quality cohort: latest analysis within one hour, quality ≥ 60 and at least 10 complete episodes. Selection uses current scores, not historical point-in-time scores."
-              : cohort === "watchlist"
-                ? "Your currently followed wallets with indexed executions."
-                : "All wallets whose executions have been indexed. This is not the entire exchange.",
+          cohort === "pilot"
+            ? "Current 20-wallet pilot membership with prioritized refreshes. Historical activity uses today's membership; this is not a point-in-time investment universe."
+            : cohort === "whales"
+              ? "Large wallets: latest analysis within one hour, with main DEX equity ≥ $100K or covered gross positions ≥ $1M. Historical flows use this current cohort."
+              : cohort === "quality"
+                ? "Quality cohort: latest analysis within one hour, quality ≥ 60 and at least 10 complete episodes. Selection uses current scores, not historical point-in-time scores."
+                : cohort === "watchlist"
+                  ? "Your currently followed wallets with indexed executions."
+                  : "All wallets whose executions have been indexed. This is not the entire exchange.",
         note: "Position inflow/outflow is opened/closed notional in indexed wallet executions. This is not collateral deposited or withdrawn. A reversal is split into a close and an open. Both sides can belong to the cohort; totals describe wallet activity, not venue volume. History may be incomplete.",
       },
     };

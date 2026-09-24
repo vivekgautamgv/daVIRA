@@ -44,6 +44,58 @@ test("engine rejects unauthenticated reads", async () => {
   assert.equal((await fetch(url + "/healthz")).status, 200);
 });
 
+test("V2 coverage journals real attempts and pilot membership is validated", async () => {
+  const { recordCollection } = await import("../engine/coverage.mjs");
+  const started = Date.now() - 100;
+  recordCollection(address, started, true, {
+    fillsFetchedAt: started,
+    latestResponseCount: 2000,
+    coverage: { gaps: 1 },
+  });
+  const report = await (await call("/coverage")).json();
+  assert.equal(report.collection.attempts, 1);
+  assert.equal(report.collection.successRate, 100);
+  assert.equal(report.collection.recent[0].capped, 1);
+  assert.equal(
+    (await call("/coverage/pilot", "POST", { address: "bad", add: true }))
+      .status,
+    400,
+  );
+  assert.equal(
+    (await call("/coverage/pilot", "POST", { address, add: "yes" })).status,
+    400,
+  );
+  assert.equal(
+    (await call("/coverage/pilot", "POST", { address, add: true })).status,
+    200,
+  );
+  let data = await (await call("/coverage")).json();
+  assert(data.rows.some((w) => w.address === address && w.pilot));
+  const pilotFlows = await (await call("/flows?cohort=pilot")).json();
+  assert.equal(pilotFlows.cohort, "pilot");
+  assert.equal(pilotFlows.coverage.eligibleWallets, 0);
+  assert.equal(
+    (await call("/coverage/pilot", "POST", { address, add: false })).status,
+    200,
+  );
+  data = await (await call("/coverage")).json();
+  assert(!data.rows.some((w) => w.address === address && w.pilot));
+});
+
+test("V2 performance validates windows and does not claim data for an empty archive", async () => {
+  assert.equal((await call(`/performance/${address}?days=90`)).status, 400);
+  assert.equal(
+    (await call(`/performance/${address}?coin=%3Cscript%3E`)).status,
+    400,
+  );
+  const r = await call(`/performance/${address}?days=7`);
+  assert.equal(r.status, 200);
+  const data = await r.json();
+  assert.equal(data.stats.fills, 0);
+  assert.equal(data.stats.winRate, null);
+  assert(data.daily.every((d) => d.pnl === null));
+});
+
 test("trade setup API validates inputs and never promotes a market without wallet evidence", async () => {
   const now = Date.now(),
     hour = 3600000;

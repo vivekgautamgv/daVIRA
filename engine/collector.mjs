@@ -208,6 +208,7 @@ export function cleanup() {
   const now = Date.now();
   db.prepare("DELETE FROM trades WHERE time<?").run(now - 86400000);
   db.prepare("DELETE FROM market_history WHERE time<?").run(now - 3 * 86400000);
+  db.prepare("DELETE FROM collection_runs WHERE finished_at<?").run(now - 14 * 86400000);
   db.prepare(
     "DELETE FROM trades WHERE id IN (SELECT id FROM trades ORDER BY time DESC LIMIT -1 OFFSET 100000)",
   ).run();

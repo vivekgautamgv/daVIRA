@@ -1,5 +1,10 @@
 const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
-export const hasTokenRecord = (c) => !!c && c.completeTrades >= 10 && c.activeDays >= 3 && c.score >= 60 && c.netPnl > 0;
+export const hasTokenRecord = (c) =>
+  !!c &&
+  c.completeTrades >= 10 &&
+  c.activeDays >= 3 &&
+  c.score >= 60 &&
+  c.netPnl > 0;
 export const analysisFresh = (a, now) => {
   const at = a?.fillsFetchedAt ?? a?.updatedAt;
   return Number.isFinite(at) && at <= now && now - at < 3600000;
@@ -31,10 +36,7 @@ export function marketRead(wallets, analyses, now = Date.now()) {
     if (isFresh) fresh++;
     if (hasTokenRecord(c)) historicalQualified++;
     // Token-specific track record, one bounded vote per wallet; size cannot buy a larger vote.
-    if (
-      isFresh &&
-      hasTokenRecord(c)
-    ) {
+    if (isFresh && hasTokenRecord(c)) {
       const q = clamp(c.score / 100, 0, 1);
       weighted += Math.sign(Number(w.positionDelta || 0)) * q;
       weight += q;

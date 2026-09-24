@@ -204,7 +204,7 @@ export function reconstructEpisodes(input) {
   }
   return { closed, gaps, openEpisodes: running.size };
 }
-function performance(episodes) {
+export function performance(episodes) {
   const full = episodes.filter((e) => e.complete),
     wins = full.filter((e) => e.netPnl > 0),
     losses = full.filter((e) => e.netPnl < 0),

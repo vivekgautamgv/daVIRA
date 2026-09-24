@@ -3,6 +3,7 @@ import { leaderboard, markets, health } from "./upstream.mjs";
 import { observeWallet } from "./wallet.mjs";
 import { enqueueAnalysis } from "./screener.mjs";
 import { hasTokenRecord } from "./market-read.mjs";
+import { pilotWallets } from "./coverage.mjs";
 let running = false;
 export async function refreshCohort() {
   if (running) return;
@@ -10,6 +11,9 @@ export async function refreshCohort() {
   if (old && Date.now() - old.updatedAt < 300000) return;
   running = true;
   try {
+    // Keep priority refresh scheduling independent of leaderboard availability.
+    for (const w of watchlist()) enqueueAnalysis(w.address, 5);
+    for (const address of pilotWallets()) enqueueAnalysis(address, 4);
     const leaders = await leaderboard();
     const selected = leaders.data
       .filter(
@@ -26,10 +30,12 @@ export async function refreshCohort() {
       .slice(0, 200);
     for (const w of discovery) enqueueAnalysis(w.address);
     // Prioritize demonstrated token records below followed-wallet monitoring.
-    for (const row of db.prepare("SELECT address,value FROM wallet_analysis").all()) {
-      if (JSON.parse(row.value).coins?.some(hasTokenRecord)) enqueueAnalysis(row.address, 3);
+    for (const row of db
+      .prepare("SELECT address,value FROM wallet_analysis")
+      .all()) {
+      if (JSON.parse(row.value).coins?.some(hasTokenRecord))
+        enqueueAnalysis(row.address, 3);
     }
-    for (const w of watchlist()) enqueueAnalysis(w.address, 5);
     for (let i = 0; i < selected.length; i += 3)
       await Promise.allSettled(
         selected.slice(i, i + 3).map((w) => observeWallet(w.address)),

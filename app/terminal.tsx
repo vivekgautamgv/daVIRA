@@ -51,6 +51,7 @@ const nav = [
   ["calendar", "Events & news", CalendarDays, "/calendar"],
   ["reports", "Research", FileText, "/reports"],
   ["paper", "Paper trading", Activity, "/paper"],
+  ["coverage", "Data coverage", ShieldCheck, "/coverage"],
   ["settings", "Data & settings", Settings2, "/settings"],
 ] as const;
 export const money = (n: number, d = 0) =>

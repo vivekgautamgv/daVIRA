@@ -1,4 +1,6 @@
 import { researchForCoin } from "./coin-research-store.mjs";
+import { coverageReport, changePilot } from "./coverage.mjs";
+import { performanceForWallet } from "./performance-store.mjs";
 import { buildTradeSetup } from "./trade-setups.mjs";
 import { watchOverview, pollWatchActivity } from "./watch-activity.mjs";
 import { createServer } from "node:http";
@@ -158,7 +160,7 @@ export const server = createServer(async (req, res) => {
           flows(
             url.searchParams.get("window") || "24h",
             (url.searchParams.get("coin") || "").slice(0, 40),
-            ["all", "whales", "quality", "watchlist"].includes(
+            ["all", "whales", "quality", "watchlist", "pilot"].includes(
               url.searchParams.get("cohort"),
             )
               ? url.searchParams.get("cohort")
@@ -170,6 +172,16 @@ export const server = createServer(async (req, res) => {
         const result = getAnalysis(address);
         void processAnalysisQueue();
         return json(res, 200, result);
+      }
+      if (path === "/coverage") return json(res, 200, coverageReport());
+      if (path.startsWith("/performance/")) {
+        const address = addr(path.split("/")[2]),
+          days = Number(url.searchParams.get("days") || 30),
+          coin = url.searchParams.get("coin") || "";
+        if (![7, 30].includes(days)) bad("Choose 7 or 30 days.");
+        if (coin && !/^[a-zA-Z0-9:._-]{1,40}$/.test(coin))
+          bad("Enter a valid market symbol.");
+        return json(res, 200, performanceForWallet(address, days, coin));
       }
       if (path === "/screens")
         return json(res, 200, {
@@ -343,6 +355,14 @@ export const server = createServer(async (req, res) => {
         void observeWallet(address).catch(() => {});
         void pollWatchActivity();
         return json(res, 200, { ok: true });
+      }
+      if (path === "/coverage/pilot" && method === "POST") {
+        const address = addr(b.address);
+        if (typeof b.add !== "boolean")
+          bad("Choose whether to add or remove this wallet.");
+        const result = changePilot(address, b.add);
+        if (b.add) enqueueAnalysis(address, 4);
+        return json(res, 200, result);
       }
       if (path.startsWith("/watchlist/") && method === "DELETE") {
         const address = addr(path.split("/")[2]);

@@ -1,5 +1,6 @@
 "use client";
 import ReportedPerformance from "./reported-performance";
+import WalletPerformance from "./wallet-performance";
 import Link from "next/link";
 import { useData, Empty, money, num, pct } from "./terminal";
 import { Score, duration } from "./screener-view";
@@ -11,6 +12,7 @@ export default function WalletResearch({ address }: { address: string }) {
   return (
     <>
       {d && <ReportedPerformance analysis={d} />}
+      {d && <WalletPerformance address={address} analysis={d} />}
       {d?.evidence && (
         <section className="panel research-card">
           <span className="eyebrow">SOURCE & HISTORY EVIDENCE</span>
@@ -239,7 +241,7 @@ export default function WalletResearch({ address }: { address: string }) {
           <section className="panel">
             <div className="panel-head">
               <div>
-                <h2>Performance by coin</h2>
+                <h2>Token quality & trading style</h2>
                 <p>Identify what this wallet actually trades well</p>
               </div>
               <span className="pill">INDEXED 30D SAMPLE</span>

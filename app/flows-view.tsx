@@ -81,6 +81,7 @@ function Content() {
           ["whales", "Large wallets"],
           ["quality", "Quality ≥ 60"],
           ["watchlist", "My watchlist"],
+          ["pilot", "V2 pilot"],
           ["all", "All indexed"],
         ].map(([id, label]) => (
           <button
