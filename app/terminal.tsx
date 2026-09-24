@@ -11,7 +11,7 @@ import {
   Bell,
   Bookmark,
   CalendarDays,
-  ChevronDown,
+  Crosshair,
   CircleHelp,
   Database,
   ExternalLink,
@@ -39,6 +39,7 @@ import {
 } from "recharts";
 const nav = [
   ["summary", "Market summary", Globe2, "/summary"],
+  ["setups", "Trade setups", Crosshair, "/setups"],
   ["discover", "Wallet screener", Wallet, "/discover"],
   ["overview", "Cohort positions", LayoutDashboard, "/dashboard"],
   ["flows", "Coin inflow / outflow", ArrowLeftRight, "/flows"],
@@ -227,7 +228,7 @@ export default function Terminal({
               href={href}
               key={key}
               aria-current={key === view ? "page" : undefined}
-              className={`${key === view ? "active" : ""} ${i === 7 ? "nav-separated" : ""}`}
+              className={`${key === view ? "active" : ""} ${key === "radar" ? "nav-separated" : ""}`}
             >
               <Icon size={18} />
               {label}

@@ -4,6 +4,7 @@ const base = process.env.CHECK_URL || "http://127.0.0.1:3000";
 for (const path of [
   "/",
   "/summary",
+  "/setups",
   "/dashboard",
   "/discover",
   "/flows",
@@ -27,6 +28,7 @@ for (const path of [
   "leaderboard",
   "screener",
   "flows",
+  "trade-setup?coin=BTC&window=24h",
   "coin-research?coin=ETH&window=24h",
   "screens",
   "markets",

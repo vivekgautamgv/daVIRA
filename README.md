@@ -25,6 +25,9 @@ npm start
 
 ## Latest product improvements
 
+- **Trade setups (`/setups`)** pair the existing evidence-gated wallet bias with fresh main-DEX quotes and completed 1H candles. A 12-bar structural stop and ATR buffer produce 1R/2R/3R research scenarios; trend conflict, stale or incomplete data, and excessive stop distance produce Wait. Account risk sizing is calculated locally, independent of wallet leverage, with daily/open-risk limits and estimated costs. This is an unvalidated research model, not order execution or a return forecast.
+- **Shared brand system** carries the landing page’s folded-V mark and ivory/graphite/orange palette through the terminal. Financial gains and losses retain separate green/red colours; theme preference persists across pages.
+
 - Institutional landing page with ivory/graphite themes, an animated intelligence diagram, live wallet and coin previews, interactive research playbooks and execution-cost illustration. Dedicated sections explain planned pre-move analysis, wallet continuity, AI research and the three-phase vision; future capabilities and target pricing remain labeled.
 - Category-led discovery with counts, eligibility explanations and direct wallet lookup.
 - Coin flows now offer large-wallet, quality, watchlist and all-indexed cohorts.

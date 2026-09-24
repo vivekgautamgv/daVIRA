@@ -43,6 +43,37 @@ test("engine rejects unauthenticated reads", async () => {
   assert.equal((await fetch(url + "/markets")).status, 401);
   assert.equal((await fetch(url + "/healthz")).status, 200);
 });
+
+test("trade setup API validates inputs and never promotes a market without wallet evidence", async () => {
+  const now = Date.now(),
+    hour = 3600000;
+  saveCache(
+    "candles:BTC:1h",
+    Array.from({ length: 30 }, (_, i) => {
+      const t = Math.floor(now / hour) * hour - (30 - i) * hour;
+      return {
+        t,
+        T: t + hour - 1,
+        o: 100,
+        h: 101,
+        l: 99,
+        c: 100,
+        s: "BTC",
+        i: "1h",
+      };
+    }),
+  );
+  const response = await call("/trade-setup?coin=BTC&window=24h"),
+    plan = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(plan.status, "wait");
+  assert.equal(plan.levels, null);
+  assert(plan.reasons.length);
+  assert.equal((await call("/trade-setup?coin=BTC&window=2d")).status, 400);
+  assert.equal((await call("/trade-setup?coin=%3Cscript%3E")).status, 400);
+  const unsupported = await (await call("/trade-setup?coin=xyz:TSLA")).json();
+  assert.equal(unsupported.status, "wait");
+});
 test("watchlist validates addresses and supports persisted labels", async () => {
   assert.equal(
     (await call("/watchlist", "POST", { address: "bad" })).status,

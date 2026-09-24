@@ -332,8 +332,8 @@ body {
   border-color: var(--muted);
 }
 .terminal .button.primary {
-  background: var(--accent-fill);
-  border-color: var(--accent-fill);
+  background: var(--accent);
+  border-color: var(--accent);
   color: var(--accent-ink);
   font-weight: 600;
 }
@@ -437,6 +437,23 @@ body {
 }
 .terminal .recharts-tooltip-cursor {
   fill: var(--panel2);
+}
+.terminal .research-coin-tabs button.active {
+  background: var(--accent-soft);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.terminal .research-grid p a {
+  color: var(--accent);
+}
+@media (max-width: 600px) {
+  .terminal .panel-head {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+  .terminal .watch-summary .panel-head {
+    flex-direction: column;
+  }
 }
 .navigation-backdrop {
   display: none;

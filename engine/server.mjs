@@ -1,4 +1,5 @@
 import { researchForCoin } from "./coin-research-store.mjs";
+import { buildTradeSetup } from "./trade-setups.mjs";
 import { watchOverview, pollWatchActivity } from "./watch-activity.mjs";
 import { createServer } from "node:http";
 import { timingSafeEqual, randomUUID } from "node:crypto";
@@ -118,10 +119,37 @@ export const server = createServer(async (req, res) => {
       if (path === "/markets") return json(res, 200, await markets());
       if (path === "/intelligence") return json(res, 200, await intelligence());
       if (path === "/screener") return json(res, 200, await screener());
+      if (path === "/trade-setup") {
+        const coin = url.searchParams.get("coin") || "BTC";
+        const window = url.searchParams.get("window") || "24h";
+        if (!/^[A-Za-z0-9:_.-]{1,40}$/.test(coin))
+          bad("Enter a valid market symbol.");
+        if (!["6h", "24h"].includes(window))
+          bad("Choose a 6h or 24h evidence window.");
+        const quote = await markets();
+        let history = null;
+        if (quote.data.some((m) => m.coin === coin)) {
+          try {
+            history = await candles(coin);
+          } catch {
+            /* A missing history must produce Wait, not synthetic levels. */
+          }
+        }
+        const evidence = flows(window, coin, "all");
+        const read = evidence.data.find((c) => c.coin === coin)?.marketRead;
+        return json(res, 200, {
+          ...buildTradeSetup({ coin, window, read, quote, history }),
+          coverage: evidence.coverage,
+        });
+      }
       if (path === "/coin-research") {
-        const coin = (url.searchParams.get("coin") || "").trim().slice(0,40);
+        const coin = (url.searchParams.get("coin") || "").trim().slice(0, 40);
         if (!coin) bad("Select a coin for research.");
-        return json(res,200,researchForCoin(coin,url.searchParams.get("window") || "24h"));
+        return json(
+          res,
+          200,
+          researchForCoin(coin, url.searchParams.get("window") || "24h"),
+        );
       }
       if (path === "/flows")
         return json(
@@ -161,8 +189,7 @@ export const server = createServer(async (req, res) => {
       }
       if (path.startsWith("/wallet/"))
         return json(res, 200, await wallet(addr(path.split("/")[2])));
-      if (path === "/watchlist")
-        return json(res, 200, watchOverview());
+      if (path === "/watchlist") return json(res, 200, watchOverview());
       if (path === "/radar")
         return json(res, 200, {
           signals: db
@@ -320,7 +347,10 @@ export const server = createServer(async (req, res) => {
       if (path.startsWith("/watchlist/") && method === "DELETE") {
         const address = addr(path.split("/")[2]);
         db.prepare("DELETE FROM watchlists WHERE address=?").run(address);
-        db.prepare("DELETE FROM cache WHERE key IN (?,?)").run(`watch-activity:${address}`, `watch-scan:${address}`);
+        db.prepare("DELETE FROM cache WHERE key IN (?,?)").run(
+          `watch-activity:${address}`,
+          `watch-scan:${address}`,
+        );
         if (
           !cached("research-cohort")?.data.wallets.some(
             (w) => w.address === address,

@@ -5,7 +5,8 @@ import Terminal, { useData, money, Empty } from "../terminal";
 import { DataState, time } from "../ui";
 export default function Summary() {
   const [window, setWindow] = useState("24h"),
-    [coin, setCoin] = useState(""), [query, setQuery] = useState("");
+    [coin, setCoin] = useState(""),
+    [query, setQuery] = useState("");
   const r = useData(`flows?window=${window}&cohort=all`, 30000);
   const rows = r.data?.data || [],
     selected = rows.find((c: any) => c.coin === coin) || rows[0];
@@ -67,7 +68,18 @@ export default function Summary() {
             {r.data?.coverage?.wallets || 0} contributing wallets · {window}
           </span>
         </div>
-        <div className="panel-foot"><input aria-label="Search summary coins" placeholder="Find BTC, ETH, xyz:TSLA…" value={query} onChange={e=>setQuery(e.target.value)} /></div><div className="table-scroll" style={{maxHeight:480,overflow:"auto"}}>
+        <div className="panel-foot">
+          <input
+            aria-label="Search summary coins"
+            placeholder="Find BTC, ETH, xyz:TSLA…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+        <div
+          className="table-scroll"
+          style={{ maxHeight: 480, overflow: "auto" }}
+        >
           <table>
             <thead>
               <tr>
@@ -83,31 +95,43 @@ export default function Summary() {
               </tr>
             </thead>
             <tbody>
-              {rows.filter((c:any)=>c.coin.toLowerCase().includes(query.trim().toLowerCase())).map((c: any) => (
-                <tr
-                  key={c.coin}
-                  className={selected?.coin === c.coin ? "selected-row" : ""}
-                >
-                  <td>
-                    <button
-                      className="text-link"
-                      onClick={() => {setCoin(c.coin);document.getElementById("coin-brief")?.scrollIntoView({behavior:"smooth",block:"nearest"});}}
-                    >
-                      {c.coin}
-                    </button>
-                  </td>
-                  <td>{c.marketRead?.action}</td>
-                  <td>{c.marketRead?.score ?? "—"}</td>
-                  <td>{c.marketRead?.confidence ?? 0}</td>
-                  <td>{money(c.inflow)}</td>
-                  <td>{money(c.outflow)}</td>
-                  <td>
-                    {c.marketRead?.qualified} / {c.wallets}
-                  </td>
-                  <td>{c.marketRead?.topShare.toFixed(0)}%</td>
-                  <td>{time(c.marketRead?.latest)}</td>
-                </tr>
-              ))}
+              {rows
+                .filter((c: any) =>
+                  c.coin.toLowerCase().includes(query.trim().toLowerCase()),
+                )
+                .map((c: any) => (
+                  <tr
+                    key={c.coin}
+                    className={selected?.coin === c.coin ? "selected-row" : ""}
+                  >
+                    <td>
+                      <button
+                        className="text-link"
+                        onClick={() => {
+                          setCoin(c.coin);
+                          document
+                            .getElementById("coin-brief")
+                            ?.scrollIntoView({
+                              behavior: "smooth",
+                              block: "nearest",
+                            });
+                        }}
+                      >
+                        {c.coin}
+                      </button>
+                    </td>
+                    <td>{c.marketRead?.action}</td>
+                    <td>{c.marketRead?.score ?? "—"}</td>
+                    <td>{c.marketRead?.confidence ?? 0}</td>
+                    <td>{money(c.inflow)}</td>
+                    <td>{money(c.outflow)}</td>
+                    <td>
+                      {c.marketRead?.qualified} / {c.wallets}
+                    </td>
+                    <td>{c.marketRead?.topShare.toFixed(0)}%</td>
+                    <td>{time(c.marketRead?.latest)}</td>
+                  </tr>
+                ))}
             </tbody>
           </table>
         </div>
@@ -146,6 +170,12 @@ export default function Summary() {
             ))}
           </div>
           <div className="inline">
+            <Link
+              className="button primary"
+              href={`/setups?coin=${encodeURIComponent(selected.coin)}`}
+            >
+              Build a risk-based setup ↗
+            </Link>
             <Link
               className="button"
               href={`/flows?coin=${encodeURIComponent(selected.coin)}`}

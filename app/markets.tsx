@@ -98,6 +98,17 @@ function MarketContent() {
         </button>
       </div>
       <DataState resource={r} />
+      {selected && !selected.includes(":") && (
+        <div className="notice">
+          <Link
+            className="text-link"
+            href={`/setups?coin=${encodeURIComponent(selected)}`}
+          >
+            Trade setup · wallet bias, stop-loss, targets and your risk budget{" "}
+            <ArrowUpRight size={14} />
+          </Link>
+        </div>
+      )}
       {selected && <CoinResearch key={selected} coin={selected} />}
       {scope === "global" && (
         <div className="notice">
