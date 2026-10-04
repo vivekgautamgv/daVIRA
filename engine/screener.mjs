@@ -13,6 +13,11 @@ import { account } from "./wallet.mjs";
 import { flowInsights } from "./flow-insights.mjs";
 import { D } from "./analytics.mjs";
 import {
+  initializeProbabilityHistory,
+  archiveFill,
+  cleanupProbabilityHistory,
+} from "./probability-history.mjs";
+import {
   analyzeExecutions,
   fillId,
   instrumentClass,
@@ -162,11 +167,20 @@ export async function analyzeWallet(address) {
   const insert = db.prepare(
     "INSERT OR IGNORE INTO wallet_fills VALUES(?,?,?,?,?)",
   );
+  initializeProbabilityHistory();
   db.exec("BEGIN");
   try {
     for (const f of fillResult.data)
-      if (f.coin && f.time && Number(f.sz) > 0 && Number(f.px) > 0)
-        insert.run(address, fillId(f), f.coin, f.time, JSON.stringify(f));
+      if (f.coin && f.time && Number(f.sz) > 0 && Number(f.px) > 0) {
+        const added = insert.run(
+          address,
+          fillId(f),
+          f.coin,
+          f.time,
+          JSON.stringify(f),
+        );
+        if (added.changes) archiveFill(address, f);
+      }
     db.exec("COMMIT");
   } catch (e) {
     db.exec("ROLLBACK");
@@ -589,6 +603,8 @@ export function flows(window = "24h", coin = "", cohort = "all") {
   return result;
 }
 export function cleanupAnalysis() {
+  initializeProbabilityHistory();
+  cleanupProbabilityHistory();
   db.prepare("DELETE FROM wallet_fills WHERE time<?").run(
     Date.now() - 30 * 86400000,
   );

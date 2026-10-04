@@ -2,6 +2,9 @@ import "./globals.css";
 import "./brand.css";
 import "./setups.css";
 import "./brief.css";
+import "./token-desk.css";
+import "./decision-panel.css";
+import "./probability-panel.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {

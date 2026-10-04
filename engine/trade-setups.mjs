@@ -1,3 +1,5 @@
+import { instrumentClass } from "../lib/instrument-class.mjs";
+
 const HOUR = 3600000;
 const finitePositive = (v) => Number.isFinite(v) && v > 0;
 
@@ -24,13 +26,12 @@ export function buildTradeSetup({
         ? "Wallet positioning is neutral; no new entry is proposed."
         : "No qualified directional wallet evidence.",
     );
-  const market = quote?.data?.find((m) => m.coin === coin);
+  const market = Array.isArray(quote?.data)
+    ? quote.data.find((m) => m.coin === coin)
+    : null;
   if (market && !finitePositive(market.price))
     reasons.push("The market quote does not contain a valid positive price.");
-  if (!market)
-    reasons.push(
-      "Price coverage is limited to listed main Hyperliquid perpetuals.",
-    );
+  if (!market) reasons.push("A current price is unavailable for this market.");
   if (
     quote?.stale ||
     !Number.isFinite(quote?.updatedAt) ||
@@ -49,6 +50,9 @@ export function buildTradeSetup({
     reasons.push("A fresh hourly candle snapshot is required.");
   const result = {
     coin,
+    dex: market?.dex ?? (coin.includes(":") ? coin.split(":")[0] : ""),
+    scope: coin.includes(":") ? "builder" : "main",
+    assetClass: instrumentClass(coin),
     window,
     side,
     status: "wait",

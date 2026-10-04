@@ -43,6 +43,40 @@
   padding-left: 25px;
   align-self: center;
 }
+.setup-coverage {
+  margin: -8px 0 22px;
+}
+.setup-asset-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  padding: 0 18px 14px;
+}
+.setup-asset-filters button {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid var(--line);
+  padding: 6px 8px;
+  color: var(--muted);
+  font-size: 10px;
+}
+.setup-asset-filters button.active {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.setup-asset-filters small {
+  font-size: 9px;
+  font-family: ui-monospace, monospace;
+}
+.setup-market-count {
+  margin: 0;
+  padding: 10px 18px;
+  font-size: 10px;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
 .setup-workspace {
   display: grid;
   grid-template-columns: 285px minmax(0, 1fr);
@@ -108,6 +142,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 .setup-market-list button > span:last-child {
   text-align: right;
@@ -115,6 +150,7 @@
 .setup-market-list strong {
   font-size: 13px;
   font-weight: 500;
+  overflow-wrap: anywhere;
 }
 .setup-market-list b {
   font-weight: 400;

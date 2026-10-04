@@ -31,6 +31,7 @@ for (const path of [
   "flows",
   "flows?cohort=pilot",
   "coverage",
+  "token-desk?coin=ETH&window=24h",
   "trade-setup?coin=BTC&window=24h",
   "coin-research?coin=ETH&window=24h",
   "screens",

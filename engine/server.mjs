@@ -1,4 +1,7 @@
 import { researchForCoin } from "./coin-research-store.mjs";
+import { tokenDesk } from "./token-desk.mjs";
+import { initializeProbabilityHistory } from "./probability-history.mjs";
+import { refreshToken } from "./token-collection.mjs";
 import { coverageReport, changePilot } from "./coverage.mjs";
 import { performanceForWallet } from "./performance-store.mjs";
 import { buildTradeSetup } from "./trade-setups.mjs";
@@ -128,7 +131,14 @@ export const server = createServer(async (req, res) => {
           bad("Enter a valid market symbol.");
         if (!["6h", "24h"].includes(window))
           bad("Choose a 6h or 24h evidence window.");
-        const quote = await markets();
+        // Preserve the full builder symbol (for example xyz:TSLA). Fetch only
+        // the selected asset's candles; the universe can contain hundreds.
+        const source = coin.includes(":")
+          ? await globalMarkets()
+          : await markets();
+        const quote = coin.includes(":")
+          ? { ...source, data: source.data.markets }
+          : source;
         let history = null;
         if (quote.data.some((m) => m.coin === coin)) {
           try {
@@ -152,6 +162,19 @@ export const server = createServer(async (req, res) => {
           200,
           researchForCoin(coin, url.searchParams.get("window") || "24h"),
         );
+      }
+      if (path === "/token-desk") {
+        const coin = url.searchParams.get("coin") || "ETH",
+          window = url.searchParams.get("window") || "24h",
+          cohort = url.searchParams.get("cohort") || "all";
+        if (!/^[A-Za-z0-9:_.-]{1,40}$/.test(coin))
+          bad("Enter a valid market symbol.");
+        if (
+          !["6h", "24h", "7d", "30d"].includes(window) ||
+          !["all", "pilot", "watchlist"].includes(cohort)
+        )
+          bad("Choose a supported window and cohort.");
+        return json(res, 200, await tokenDesk(coin, window, cohort));
       }
       if (path === "/flows")
         return json(
@@ -287,6 +310,17 @@ export const server = createServer(async (req, res) => {
     }
     if (method === "POST" || method === "PATCH" || method === "DELETE") {
       const b = await body(req);
+      if (path === "/token-desk/refresh" && method === "POST") {
+        const coin = b.coin;
+        if (typeof coin !== "string" || !/^[a-zA-Z0-9:._-]{1,40}$/.test(coin))
+          bad("Enter a valid market symbol.");
+        const market = coin.includes(":")
+          ? (await globalMarkets()).data.markets
+          : (await markets()).data;
+        if (!market.some((m) => m.coin === coin))
+          bad("Select a currently listed covered market.");
+        return json(res, 202, refreshToken(coin));
+      }
       if (path === "/analyze" && method === "POST") {
         const address = addr(b.address);
         const queued = enqueueAnalysis(address, 20);
@@ -446,6 +480,7 @@ export const server = createServer(async (req, res) => {
 });
 server.requestTimeout = 30000;
 server.headersTimeout = 15000;
+initializeProbabilityHistory();
 server.listen(Number(process.env.ENGINE_PORT || 8787), host, () =>
   console.log(
     `daVIRA engine ready on http://${host}:${process.env.ENGINE_PORT || 8787}`,

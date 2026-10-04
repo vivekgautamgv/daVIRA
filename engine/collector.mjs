@@ -1,5 +1,6 @@
 import { pollWatchActivity } from "./watch-activity.mjs";
 import { recordMarkets } from "./market-history.mjs";
+import { processBackfill } from "./fill-backfill.mjs";
 import {
   db,
   watchlist,
@@ -18,6 +19,7 @@ import {
   cleanupAnalysis,
   queueRwaCandidates,
   refreshStoredAnalyses,
+  analyzeWallet,
 } from "./screener.mjs";
 import { isRwa } from "./screener-math.mjs";
 let socket,
@@ -208,7 +210,9 @@ export function cleanup() {
   const now = Date.now();
   db.prepare("DELETE FROM trades WHERE time<?").run(now - 86400000);
   db.prepare("DELETE FROM market_history WHERE time<?").run(now - 3 * 86400000);
-  db.prepare("DELETE FROM collection_runs WHERE finished_at<?").run(now - 14 * 86400000);
+  db.prepare("DELETE FROM collection_runs WHERE finished_at<?").run(
+    now - 14 * 86400000,
+  );
   db.prepare(
     "DELETE FROM trades WHERE id IN (SELECT id FROM trades ORDER BY time DESC LIMIT -1 OFFSET 100000)",
   ).run();
@@ -234,9 +238,22 @@ export function startCollector() {
     setInterval(() => void pollWatchActivity(), 15000),
     setInterval(() => {
       // Preserve request headroom for followed-wallet monitoring.
-      if (watchlist().length && health.weight > 300) return;
+      if (watchlist().length && health.weight > 600) return;
       void processAnalysisQueue().catch(() => {});
-    }, 12000),
+    }, 3000),
+    setInterval(() => {
+      if (getSetting("paused", false)) return;
+      // Clear focused fresh-data requests before spending budget on older pages.
+      if (
+        db
+          .prepare(
+            "SELECT 1 FROM analysis_queue WHERE priority>=10 AND queued_at<=? LIMIT 1",
+          )
+          .get(Date.now())
+      )
+        return;
+      void processBackfill(analyzeWallet);
+    }, 6000),
     setInterval(() => void poll().catch(() => {}), 60000),
     setInterval(cleanup, 300000),
     setInterval(() => {

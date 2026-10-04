@@ -20,6 +20,16 @@ saveCache("markets", [
     openInterest: 1000000,
   },
 ]);
+saveCache("global-markets", {
+  markets: [
+    { coin: "xyz:TSLA", dex: "xyz", price: 250, volume: 2000000 },
+    { coin: "flx:TSLA", dex: "flx", price: 251, volume: 1000000 },
+  ],
+  coverage: [
+    { dex: "xyz", ok: true },
+    { dex: "flx", ok: true },
+  ],
+});
 const address = "0x" + "1".repeat(40);
 saveCache(`account:${address}`, { equity: 1000, positions: [] });
 const { server } = await import("../engine/server.mjs");
@@ -42,6 +52,82 @@ test.after(async () => {
 test("engine rejects unauthenticated reads", async () => {
   assert.equal((await fetch(url + "/markets")).status, 401);
   assert.equal((await fetch(url + "/healthz")).status, 200);
+});
+
+test("Token Lens validates inputs and keeps unavailable flow history distinct from price data", async () => {
+  const h = 3600000,
+    end = Math.floor(Date.now() / h) * h;
+  saveCache(
+    "token-candles:BTC:1h",
+    Array.from({ length: 24 }, (_, j) => ({
+      s: "BTC",
+      i: "1h",
+      t: end - (24 - j) * h,
+      T: end - (23 - j) * h - 1,
+      o: 100,
+      h: 102,
+      l: 98,
+      c: 101,
+    })),
+  );
+  // Keep this API contract test offline; a short genuine-shaped fixture must
+  // not be mistaken for six months of observed wallet history.
+  saveCache(
+    "probability-candles:BTC:1h:v1",
+    (await import("../engine/db.mjs")).cached("token-candles:BTC:1h").data,
+  );
+  assert.equal((await call("/token-desk?coin=%3Cbad%3E")).status, 400);
+  assert.equal((await call("/token-desk?coin=BTC&window=90d")).status, 400);
+  const response = await call("/token-desk?coin=BTC&window=24h&cohort=all"),
+    d = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(d.coin, "BTC");
+  assert(d.series.some((b) => b.price === 101));
+  assert(d.series.every((b) => b.inflow === null));
+  assert.equal(d.analogues.statistics, null);
+  assert.equal(d.probability.version, "historical-probability-v1");
+  assert.equal(d.probability.coin, "BTC");
+  assert.deepEqual(
+    d.probability.models.map((m) => m.id),
+    ["wallet", "price"],
+  );
+  assert(
+    d.probability.models.every((m) =>
+      m.horizons.every((h) => h.statistics === null),
+    ),
+  );
+  assert.equal(d.positioning.longWallets, 0);
+  assert.equal(
+    (await call("/token-desk/refresh", "POST", { coin: "<bad>" })).status,
+    400,
+  );
+  assert.equal(
+    (await call("/token-desk/refresh", "POST", { coin: "UNKNOWN" })).status,
+    400,
+  );
+  const job = await (
+    await call("/token-desk/refresh", "POST", { coin: "BTC" })
+  ).json();
+  assert.equal(job.positionTarget, 0);
+  assert.equal(job.addresses.length, 0);
+  assert.deepEqual(
+    d.windows.map((w) => w.label),
+    ["1h", "6h", "24h", "7d", "30d"],
+  );
+  assert(d.windows.every((w) => w.fills === 0 && w.topShare === null));
+  assert.equal(d.decision.metrics.netBuy, 0);
+  assert.equal(d.decision.metrics.excludingLeader, null);
+  assert.equal(d.decision.metrics.breadthPct, null);
+  assert.equal(d.decision.coin, "BTC");
+  const sixResponse = await call(
+      "/token-desk?coin=BTC&window=6h&cohort=watchlist",
+    ),
+    six = await sixResponse.json();
+  assert.equal(sixResponse.status, 200);
+  assert.equal(six.window, "6h");
+  assert.equal(six.cohort, "watchlist");
+  assert.equal(six.decision.window, "6h");
+  assert.equal(six.end - six.start, 6 * h);
 });
 
 test("V2 coverage journals real attempts and pilot membership is validated", async () => {
@@ -123,8 +209,51 @@ test("trade setup API validates inputs and never promotes a market without walle
   assert(plan.reasons.length);
   assert.equal((await call("/trade-setup?coin=BTC&window=2d")).status, 400);
   assert.equal((await call("/trade-setup?coin=%3Cscript%3E")).status, 400);
-  const unsupported = await (await call("/trade-setup?coin=xyz:TSLA")).json();
+  const unsupported = await (
+    await call("/trade-setup?coin=xyz:UNKNOWN")
+  ).json();
   assert.equal(unsupported.status, "wait");
+  assert.equal(unsupported.market, null);
+});
+test("trade setups resolve each covered builder namespace and retain evidence gates", async () => {
+  const now = Date.now(),
+    hour = 3600000;
+  for (const [coin, mark] of [
+    ["xyz:TSLA", 250],
+    ["flx:TSLA", 251],
+  ]) {
+    saveCache(
+      `candles:${coin}:1h`,
+      Array.from({ length: 30 }, (_, i) => {
+        const t = Math.floor(now / hour) * hour - (30 - i) * hour;
+        return {
+          t,
+          T: t + hour - 1,
+          o: mark,
+          h: mark + 1,
+          l: mark - 1,
+          c: mark,
+          s: coin,
+          i: "1h",
+        };
+      }),
+    );
+    const response = await call(
+      `/trade-setup?coin=${encodeURIComponent(coin)}&window=6h`,
+    );
+    const plan = await response.json();
+    assert.equal(response.status, 200);
+    assert.equal(plan.coin, coin);
+    assert.equal(plan.market.coin, coin);
+    assert.equal(plan.market.price, mark);
+    assert.equal(plan.dex, coin.split(":")[0]);
+    assert.equal(plan.scope, "builder");
+    assert.equal(plan.assetClass, "Equity");
+    assert(plan.candleSnapshotAt > 0);
+    assert.equal(plan.status, "wait");
+    assert.equal(plan.levels, null);
+    assert(!plan.reasons.some((r) => r.includes("main Hyperliquid")));
+  }
 });
 test("watchlist validates addresses and supports persisted labels", async () => {
   assert.equal(

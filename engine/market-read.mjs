@@ -9,6 +9,31 @@ export const analysisFresh = (a, now) => {
   const at = a?.fillsFetchedAt ?? a?.updatedAt;
   return Number.isFinite(at) && at <= now && now - at < 3600000;
 };
+// Shared by Summary, setup voting and Token Lens. A promising record is not
+// qualified for live voting when retrieval is stale, capped or has known gaps.
+export function tokenRecordEvidence(a, c, now = Date.now()) {
+  const reasons = [];
+  if (!c) reasons.push("No token-specific trading record");
+  else {
+    if (!Number.isFinite(c.completeTrades) || c.completeTrades < 10)
+      reasons.push("Fewer than 10 completed token episodes");
+    if (!Number.isFinite(c.activeDays) || c.activeDays < 3)
+      reasons.push("Fewer than three token closing days");
+    if (!Number.isFinite(c.score) || c.score < 60)
+      reasons.push("Token quality below 60 or unavailable");
+    if (!Number.isFinite(c.netPnl) || c.netPnl <= 0)
+      reasons.push("Completed token episode PnL is not positive");
+  }
+  const at = a?.fillsFetchedAt;
+  if (!Number.isFinite(at) || at > now || now - at >= 3600000)
+    reasons.push("Fill retrieval is stale or unverified");
+  if (a?.coverage?.gaps !== 0)
+    reasons.push("Fill reconstruction gaps exist or coverage is unverified");
+  const count = a?.latestResponseCount;
+  if (!Number.isFinite(count) || count < 0 || count >= 2000)
+    reasons.push("Latest fill response is capped or its depth is unverified");
+  return { qualified: reasons.length === 0, reasons };
+}
 // Evidence-gated positioning score; never a probability of future return.
 export function marketRead(wallets, analyses, now = Date.now()) {
   let gross = 0,
@@ -20,6 +45,7 @@ export function marketRead(wallets, analyses, now = Date.now()) {
     qualified = 0,
     historicalQualified = 0,
     fresh = 0,
+    unverifiedCandidates = 0,
     latest = 0;
   const volumes = [];
   for (const w of wallets) {
@@ -35,8 +61,11 @@ export function marketRead(wallets, analyses, now = Date.now()) {
     const isFresh = analysisFresh(a, now);
     if (isFresh) fresh++;
     if (hasTokenRecord(c)) historicalQualified++;
+    const record = tokenRecordEvidence(a, c, now);
+    if (isFresh && hasTokenRecord(c) && !record.qualified)
+      unverifiedCandidates++;
     // Token-specific track record, one bounded vote per wallet; size cannot buy a larger vote.
-    if (isFresh && hasTokenRecord(c)) {
+    if (record.qualified) {
       const q = clamp(c.score / 100, 0, 1);
       weighted += Math.sign(Number(w.positionDelta || 0)) * q;
       weight += q;
@@ -66,7 +95,7 @@ export function marketRead(wallets, analyses, now = Date.now()) {
   );
   const reasons = [];
   if (count < 5) reasons.push("Fewer than five observed wallets");
-  if (qualified < 3) reasons.push("Fewer than three proven token specialists");
+  if (qualified < 3) reasons.push("Fewer than three qualified token records");
   if (topShare > 0.6)
     reasons.push("One wallet contributes over 60% of activity");
   if (!count || fresh / count < 0.7)
@@ -93,6 +122,12 @@ export function marketRead(wallets, analyses, now = Date.now()) {
     reasons,
     qualified,
     historicalQualified,
+    unverifiedCandidates,
+    warnings: unverifiedCandidates
+      ? [
+          `${unverifiedCandidates} candidate records excluded by fill-coverage checks`,
+        ]
+      : [],
     fresh,
     count,
     topShare: topShare * 100,
@@ -103,9 +138,9 @@ export function marketRead(wallets, analyses, now = Date.now()) {
     executionBalance,
     explanation:
       action === "Long bias"
-        ? "New long exposure and specialist positioning align. Check price structure and execution costs before considering entry."
+        ? "New long entries and qualified wallet execution direction align. Check price structure and execution costs before considering entry."
         : action === "Short bias"
-          ? "New short exposure and specialist positioning align. Check price structure and execution costs before considering entry."
+          ? "New short entries and qualified wallet execution direction align. Check price structure and execution costs before considering entry."
           : action === "Hold / neutral"
             ? "Evidence passes the sample gates but has no strong directional edge. Hold means reassess an existing thesis; it is not an instruction to retain a losing position."
             : "Evidence is insufficient or conflicting. No directional setup is promoted.",

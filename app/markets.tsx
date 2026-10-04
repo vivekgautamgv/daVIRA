@@ -1,5 +1,6 @@
 "use client";
-import CoinResearch from "./coin-research";
+import TokenDesk from "./token-desk";
+import AssetPulse from "./asset-pulse";
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
@@ -98,7 +99,7 @@ function MarketContent() {
         </button>
       </div>
       <DataState resource={r} />
-      {selected && !selected.includes(":") && (
+      {selected && (
         <div className="notice">
           <Link
             className="text-link"
@@ -109,7 +110,8 @@ function MarketContent() {
           </Link>
         </div>
       )}
-      {selected && <CoinResearch key={selected} coin={selected} />}
+      {selected && <TokenDesk key={selected} coin={selected} />}
+      <AssetPulse />
       {scope === "global" && (
         <div className="notice">
           Coverage: first three registered builder DEXs. These are derivative

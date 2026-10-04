@@ -13,6 +13,8 @@ import {
 import Terminal, { Heading, useData, money } from "./terminal";
 import { DataState, download, time } from "./ui";
 import { sizeTrade } from "../lib/trade-risk.mjs";
+import { instrumentClass } from "../lib/instrument-class.mjs";
+import TokenDesk from "./token-desk";
 
 const defaults = {
   equity: "10000",
@@ -62,6 +64,14 @@ const tone = (action: string) =>
     : action === "Short bias"
       ? "negative"
       : "muted";
+const assetGroups = ["All", "Crypto", "Equities", "Commodities", "Other"];
+const assetGroup = (coin: string) => {
+  const type = instrumentClass(coin);
+  if (["Crypto", "RWA token"].includes(type)) return "Crypto";
+  if (["Equity", "Index"].includes(type)) return "Equities";
+  if (type === "Commodity") return "Commodities";
+  return "Other";
+};
 
 export default function TradeSetups() {
   const params = useSearchParams();
@@ -69,6 +79,7 @@ export default function TradeSetups() {
   const [window, setWindow] = useState("24h");
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All");
+  const [assetFilter, setAssetFilter] = useState("All");
   const [risk, setRisk] = useState(defaults);
   const [edited, setEdited] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -81,6 +92,7 @@ export default function TradeSetups() {
   }, []);
   const flows = useData(`flows?window=${window}&cohort=all`, 30000);
   const markets = useData("markets", 60000);
+  const builderMarkets = useData("global-markets", 60000);
   const setup = useData(
     `trade-setup?coin=${encodeURIComponent(coin)}&window=${window}`,
     60000,
@@ -106,7 +118,13 @@ export default function TradeSetups() {
     const byCoin = new Map(
       (flows.data?.data || []).map((r: any) => [r.coin, r]),
     );
-    return (markets.data?.data || [])
+    const universe = new Map<string, any>();
+    for (const m of [
+      ...(markets.data?.data || []),
+      ...(builderMarkets.data?.data?.markets || []),
+    ])
+      universe.set(m.coin, m);
+    return Array.from(universe.values())
       .map((m: any) => ({ ...m, evidence: byCoin.get(m.coin) as any }))
       .sort((a: any, b: any) => {
         const rank = (m: any) =>
@@ -115,10 +133,21 @@ export default function TradeSetups() {
             : 0;
         return rank(b) - rank(a) || b.volume - a.volume;
       });
-  }, [flows.data, markets.data]);
+  }, [flows.data, markets.data, builderMarkets.data]);
+  const assetCounts = Object.fromEntries(
+    assetGroups.map((group) => [
+      group,
+      group === "All"
+        ? rows.length
+        : rows.filter((m: any) => assetGroup(m.coin) === group).length,
+    ]),
+  );
   const visible = rows.filter(
     (m: any) =>
-      m.coin.toLowerCase().includes(query.toLowerCase()) &&
+      `${m.coin} ${m.dex || "Hyperliquid"} ${instrumentClass(m.coin)}`
+        .toLowerCase()
+        .includes(query.trim().toLowerCase()) &&
+      (assetFilter === "All" || assetGroup(m.coin) === assetFilter) &&
       (filter === "All" ||
         (filter === "Directional"
           ? ["Long bias", "Short bias"].includes(m.evidence?.marketRead?.action)
@@ -129,6 +158,11 @@ export default function TradeSetups() {
   const directional = rows.filter((m: any) =>
     ["Long bias", "Short bias"].includes(m.evidence?.marketRead?.action),
   ).length;
+  const currentMarket = rows.find((m: any) => m.coin === coin);
+  const coverage = builderMarkets.data?.data?.coverage || [];
+  const loadedVenues = coverage.filter((v: any) => v.ok).length;
+  const mainCount = rows.filter((m: any) => !m.dex).length;
+  const builderCount = rows.length - mainCount;
   const reasons = !sameSelection
     ? []
     : [
@@ -157,6 +191,18 @@ export default function TradeSetups() {
         text="Turn qualified wallet positioning into a price-based scenario, sized for your account."
       >
         <div className="time-switch" aria-label="Wallet evidence window">
+          <select
+            aria-label="Trade research coin"
+            value={coin}
+            onChange={(e) => setCoin(e.target.value)}
+          >
+            {!currentMarket && <option value={coin}>{coin}</option>}
+            {rows.map((m: any) => (
+              <option key={m.coin} value={m.coin}>
+                {m.coin} · {instrumentClass(m.coin)} · {m.dex || "Main DEX"}
+              </option>
+            ))}
+          </select>
           {["6h", "24h"].map((w) => (
             <button
               key={w}
@@ -179,12 +225,12 @@ export default function TradeSetups() {
         <span>
           <b>03</b> Set your own risk
         </span>
-        <span className="setup-research-label">RESEARCH / v1</span>
+        <span className="setup-research-label">RESEARCH / WALLET + PRICE</span>
       </div>
       <div className="setup-overview">
         <div>
           <b>{rows.length || "—"}</b>
-          <span>Main DEX markets</span>
+          <span>Covered perpetual markets</span>
         </div>
         <div>
           <b>{flows.loading ? "—" : directional}</b>
@@ -199,6 +245,29 @@ export default function TradeSetups() {
           freshness, trend, volatility and risk checks.
         </p>
       </div>
+      <p className="subtle-note setup-coverage" role="status">
+        {mainCount} main DEX markets · {builderCount} builder markets
+        {coverage.length > 0 &&
+          ` · ${loadedVenues} / ${coverage.length} covered builder venues available`}
+        . Same evidence and risk checks for every market.
+        {coverage.some((v: any) => !v.ok) && (
+          <span>
+            {" "}
+            Unavailable:{" "}
+            {coverage
+              .filter((v: any) => !v.ok)
+              .map((v: any) => v.dex)
+              .join(", ")}
+            .
+          </span>
+        )}
+      </p>
+      <details className="panel research-card" open>
+        <summary>
+          {coin} wallet evidence · flows, price and the traders behind them
+        </summary>
+        <TokenDesk key={coin} coin={coin} />
+      </details>
       <div className="setup-workspace">
         <aside className="panel setup-board">
           <div className="panel-head">
@@ -212,10 +281,22 @@ export default function TradeSetups() {
             <Search size={15} />
             <input
               aria-label="Search setup markets"
-              placeholder="Find BTC, ETH, SOL…"
+              placeholder="Find BTC, xyz:TSLA, GOLD…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
+          </div>
+          <div className="setup-asset-filters" aria-label="Setup asset class">
+            {assetGroups.map((group) => (
+              <button
+                key={group}
+                aria-pressed={assetFilter === group}
+                className={assetFilter === group ? "active" : ""}
+                onClick={() => setAssetFilter(group)}
+              >
+                {group} <small>{assetCounts[group]}</small>
+              </button>
+            ))}
           </div>
           <div className="setup-filters">
             {["All", "Directional", "Wait / neutral"].map((f) => (
@@ -231,6 +312,10 @@ export default function TradeSetups() {
           </div>
           <DataState resource={flows} />
           <DataState resource={markets} />
+          <DataState resource={builderMarkets} />
+          <p className="setup-market-count" aria-live="polite">
+            Showing {visible.length} / {rows.length} markets
+          </p>
           <div
             className="setup-market-list"
             role="group"
@@ -246,6 +331,9 @@ export default function TradeSetups() {
                 <span>
                   <strong>{m.coin}</strong>
                   <small>{price(m.price)}</small>
+                  <small>
+                    {instrumentClass(m.coin)} · {m.dex || "Main DEX"}
+                  </small>
                 </span>
                 <span>
                   <b className={tone(m.evidence?.marketRead?.action)}>
@@ -258,14 +346,16 @@ export default function TradeSetups() {
                 </span>
               </button>
             ))}
-            {!visible.length && !markets.loading && (
+            {!visible.length && !markets.loading && !builderMarkets.loading && (
               <p className="subtle-note">No markets match this filter.</p>
             )}
           </div>
           <p className="subtle-note">
             All indexed wallets · {window}. Current token track records qualify
-            specialist votes. Builder markets are outside this first setup
-            model.
+            specialist votes. Main and covered builder DEX perpetuals are
+            evaluated using the same model. Equities includes index derivatives;
+            Other includes FX and unclassified builder instruments. A listed
+            market does not automatically qualify for a trade plan.
           </p>
         </aside>
         <div className="setup-detail">
@@ -280,6 +370,8 @@ export default function TradeSetups() {
                 onClick={() => {
                   void setup.reload();
                   void flows.reload();
+                  void markets.reload();
+                  void builderMarkets.reload();
                 }}
                 disabled={setup.loading}
               >

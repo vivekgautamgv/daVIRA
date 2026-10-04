@@ -76,6 +76,27 @@ test("an unfinished extreme candle cannot influence the stop", () => {
   });
   assert.deepEqual(buildTradeSetup(x).levels, expected);
 });
+test("covered builder assets use exact venue prices and the same setup gates", () => {
+  for (const coin of ["xyz:TSLA", "flx:TSLA", "xyz:SILVER", "xyz:XYZ100"]) {
+    const x = sample();
+    x.coin = coin;
+    x.history.data = x.history.data.map((c) => ({ ...c, s: coin }));
+    x.quote.data = [
+      { ...x.quote.data[0], coin, dex: coin.split(":")[0] },
+      { coin: "other:TSLA", price: 10000 },
+    ];
+    const plan = buildTradeSetup(x);
+    assert.equal(plan.status, "candidate");
+    assert.equal(plan.scope, "builder");
+    assert.equal(plan.dex, coin.split(":")[0]);
+    assert.equal(plan.levels.entry, x.quote.data[0].price);
+    const wrongVenue = structuredClone(x);
+    wrongVenue.history.data[5].s = "other:TSLA";
+    assert.equal(buildTradeSetup(wrongVenue).levels, null);
+    x.quote.stale = true;
+    assert.equal(buildTradeSetup(x).levels, null);
+  }
+});
 test("neutral, insufficient, stale, malformed and gapped evidence never emits levels", () => {
   const changes = [
     (x) => (x.read.action = "Hold / neutral"),

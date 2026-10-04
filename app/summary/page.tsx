@@ -3,6 +3,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Terminal, { useData, money, Empty } from "../terminal";
 import { DataState, time } from "../ui";
+import CoinBrief from "../coin-brief";
 const percent = (n: number | null | undefined) =>
   n == null || !Number.isFinite(n) ? "—" : `${n.toFixed(1)}%`;
 const behaviors = [
@@ -60,6 +61,19 @@ export default function Summary() {
           </p>
         </div>
         <div className="tabs">
+          <select
+            aria-label="Intelligence brief coin"
+            value={selected?.coin || ""}
+            onChange={(e) => setCoin(e.target.value)}
+            disabled={!rows.length}
+          >
+            {!rows.length && <option value="">Collecting coins…</option>}
+            {rows.map((c: any) => (
+              <option key={c.coin} value={c.coin}>
+                {c.coin}
+              </option>
+            ))}
+          </select>
           {["6h", "24h"].map((w) => (
             <button
               key={w}
@@ -114,6 +128,11 @@ export default function Summary() {
         opened/closed notional, not deposits or withdrawals. Missing evidence
         blocks trade setups, but does not erase observed activity.
       </p>
+      {selected && (
+        <section id="coin-brief">
+          <CoinBrief coin={selected.coin} window={window} cohort={cohort} />
+        </section>
+      )}
       <section className="panel">
         <div className="panel-head">
           <div>
@@ -252,7 +271,7 @@ export default function Summary() {
         )}
       </section>
       {selected && b && (
-        <section id="coin-brief" className="brief-detail">
+        <section className="brief-detail">
           <div className="panel research-card">
             <span className="eyebrow">
               02 / EXPLAIN THE MOVE · {selected.coin}
@@ -396,7 +415,7 @@ export default function Summary() {
                 Evidence <strong>{read.confidence}/100</strong>
               </span>
               <span>
-                Historical specialists{" "}
+                Historical record candidates{" "}
                 <strong>{read.historicalQualified ?? 0}</strong> · fresh{" "}
                 <strong>{read.qualified}</strong>
               </span>
@@ -447,7 +466,7 @@ export default function Summary() {
             <strong>{coverage?.freshWallets ?? "—"}</strong>
           </div>
           <div>
-            <span>Wallets with a proven token record</span>
+            <span>Wallets with a candidate token record</span>
             <strong>{coverage?.historicalSpecialists ?? "—"}</strong>
           </div>
           <div>
@@ -489,9 +508,11 @@ export default function Summary() {
           specialists, largest share ≤60%, ≥70% fresh fill analyses, execution
           within 2h, ≥$10K opening notional and no material entry/specialist
           disagreement. Token specialists need score ≥60, positive token PnL,
-          ≥10 complete episodes and ≥3 closing days. Evidence weights: breadth
-          35%, specialists 30%, concentration 20%, freshness 15%; not calibrated
-          confidence.
+          ≥10 complete episodes and ≥3 closing days, fill retrieval within one
+          hour, no detected reconstruction gaps and an uncapped latest fill
+          response. These same qualification checks apply in Token Lens.
+          Evidence weights: breadth 35%, specialists 30%, concentration 20%,
+          freshness 15%; not calibrated confidence.
         </p>
         <p>
           Open-interest history is sampled every five minutes on the main DEX
