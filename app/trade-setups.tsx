@@ -15,6 +15,7 @@ import { DataState, download, time } from "./ui";
 import { sizeTrade } from "../lib/trade-risk.mjs";
 import { instrumentClass } from "../lib/instrument-class.mjs";
 import TokenDesk from "./token-desk";
+import TraderBrief from "./trader-brief";
 
 const defaults = {
   equity: "10000",
@@ -80,6 +81,7 @@ export default function TradeSetups() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("All");
   const [assetFilter, setAssetFilter] = useState("All");
+  const [view, setView] = useState("brief");
   const [risk, setRisk] = useState(defaults);
   const [edited, setEdited] = useState(false);
   const [now, setNow] = useState(Date.now());
@@ -93,6 +95,14 @@ export default function TradeSetups() {
   const flows = useData(`flows?window=${window}&cohort=all`, 30000);
   const markets = useData("markets", 60000);
   const builderMarkets = useData("global-markets", 60000);
+  const research = useData(
+    `token-desk?coin=${encodeURIComponent(coin)}&window=${window}&cohort=all`,
+    60000,
+  );
+  const brief =
+    research.data?.coin === coin && research.data?.window === window
+      ? research.data.traderBrief
+      : null;
   const setup = useData(
     `trade-setup?coin=${encodeURIComponent(coin)}&window=${window}`,
     60000,
@@ -186,9 +196,9 @@ export default function TradeSetups() {
   return (
     <Terminal view="setups">
       <Heading
-        eyebrow="FROM OBSERVATION TO A TRADE PLAN"
-        title="Their activity. Your risk."
-        text="Turn qualified wallet positioning into a price-based scenario, sized for your account."
+        eyebrow="WALLET EVIDENCE / MARKET SCENARIOS"
+        title="Trade decision desk"
+        text="Follow the change in positioning, test the opposing case, then build a plan using your own risk limits."
       >
         <div className="time-switch" aria-label="Wallet evidence window">
           <select
@@ -215,35 +225,16 @@ export default function TradeSetups() {
           ))}
         </div>
       </Heading>
-      <div className="setup-process">
+      <div className="setup-scope">
         <span>
-          <b>01</b> Read wallet evidence
+          <b>{rows.length || "—"}</b> covered markets
         </span>
         <span>
-          <b>02</b> Check price & invalidation
+          <b>{flows.loading ? "—" : directional}</b> directional wallet biases
         </span>
         <span>
-          <b>03</b> Set your own risk
+          {window.toUpperCase()} wallet evidence · completed 1H price context
         </span>
-        <span className="setup-research-label">RESEARCH / WALLET + PRICE</span>
-      </div>
-      <div className="setup-overview">
-        <div>
-          <b>{rows.length || "—"}</b>
-          <span>Covered perpetual markets</span>
-        </div>
-        <div>
-          <b>{flows.loading ? "—" : directional}</b>
-          <span>Directional wallet biases</span>
-        </div>
-        <div>
-          <b>1H</b>
-          <span>Price structure</span>
-        </div>
-        <p>
-          Bias is not an entry signal. Each candidate must also pass price
-          freshness, trend, volatility and risk checks.
-        </p>
       </div>
       <p className="subtle-note setup-coverage" role="status">
         {mainCount} main DEX markets · {builderCount} builder markets
@@ -262,12 +253,6 @@ export default function TradeSetups() {
           </span>
         )}
       </p>
-      <details className="panel research-card" open>
-        <summary>
-          {coin} wallet evidence · flows, price and the traders behind them
-        </summary>
-        <TokenDesk key={coin} coin={coin} />
-      </details>
       <div className="setup-workspace">
         <aside className="panel setup-board">
           <div className="panel-head">
@@ -359,285 +344,349 @@ export default function TradeSetups() {
           </p>
         </aside>
         <div className="setup-detail">
-          <section className="panel setup-plan" aria-labelledby="setup-title">
-            <div className="panel-head">
-              <div>
-                <span className="eyebrow">02 / PLAN · {coin}</span>
-                <h2 id="setup-title">{state}</h2>
-              </div>
+          <div
+            className="setup-detail-tabs"
+            aria-label="Selected asset workspace"
+          >
+            {[
+              ["brief", "Decision brief"],
+              ["plan", "Trade plan & risk"],
+              ["data", "Data & wallets"],
+            ].map(([id, label]) => (
               <button
-                className="button"
-                onClick={() => {
-                  void setup.reload();
-                  void flows.reload();
-                  void markets.reload();
-                  void builderMarkets.reload();
-                }}
-                disabled={setup.loading}
+                key={id}
+                aria-pressed={view === id}
+                onClick={() => setView(id)}
               >
-                <RefreshCw size={14} />
-                Refresh
+                {label}
               </button>
-            </div>
-            <DataState resource={setup} />
-            <div className="setup-evidence">
-              <div>
-                <span>Wallet direction</span>
-                <b>
-                  {sameSelection ? (d.read?.score ?? "—") : "—"}
-                  <small> / 100</small>
-                </b>
-              </div>
-              <div>
-                <span>Evidence quality</span>
-                <b>
-                  {sameSelection ? (d.read?.confidence ?? "—") : "—"}
-                  <small> / 100</small>
-                </b>
-              </div>
-              <div>
-                <span>Qualified specialists</span>
-                <b>
-                  {sameSelection ? (d.read?.qualified ?? 0) : "—"}
-                  <small>
-                    {" "}
-                    / {sameSelection ? (d.read?.count ?? 0) : "—"} wallets
-                  </small>
-                </b>
-              </div>
-            </div>
-            <p className="setup-explanation">
-              {sameSelection
-                ? d.read?.explanation ||
-                  "There is not enough indexed wallet history to establish a direction."
-                : "Checking the selected market’s wallet evidence and completed candles."}
-            </p>
-            {!active && !setup.loading && (
-              <div className="setup-blockers">
-                <ShieldCheck size={20} />
-                <div>
-                  <h3>What needs to change</h3>
-                  <ul>
-                    {(reasons.length
-                      ? reasons
-                      : [
-                          setup.error
-                            ? "Restore the market data connection."
-                            : "Wait for aligned wallet and price evidence.",
-                        ]
-                    ).map((reason: string) => (
-                      <li key={reason}>{reason}</li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            )}
-            <div className="setup-levels">
-              <div>
-                <span>Entry reference</span>
-                <strong>{levels ? price(levels.entry) : "—"}</strong>
-                <small>Current mark · not an order fill</small>
-              </div>
-              <div className="setup-stop">
-                <span>Stop-loss reference</span>
-                <strong>{levels ? price(levels.stop) : "—"}</strong>
-                <small>
-                  {levels
-                    ? `${levels.stopPct.toFixed(2)}% from entry · structure + volatility`
-                    : "Withheld until evidence passes"}
-                </small>
-              </div>
-              {[1, 2, 3].map((r) => (
-                <div key={r}>
-                  <span>
-                    TP{r} · {r}R gross
-                  </span>
-                  <strong>
-                    {levels
-                      ? price(levels.targets.find((t: any) => t.r === r)?.price)
-                      : "—"}
-                  </strong>
-                  <small>{r}× stop distance · scenario level</small>
-                </div>
-              ))}
-            </div>
-            {levels && (
-              <div className="setup-invalidation">
-                <b>Reassess the setup if</b>
-                <p>
-                  Price crosses {price(levels.stop)}, wallet direction changes,
-                  evidence fails, or this snapshot expires. ATR14:{" "}
-                  {price(levels.atr)} · 20-hour mean: {price(levels.trend)}.
+            ))}
+          </div>
+          {view === "brief" && (
+            <>
+              <DataState resource={research} />
+              {brief && (
+                <TraderBrief
+                  data={brief}
+                  readiness={
+                    active
+                      ? `${d.side === "long" ? "Long" : "Short"} research plan available · open Trade plan & risk`
+                      : sameSelection && !setup.error
+                        ? `Trade plan pending: ${reasons[0] || "awaiting aligned evidence"}`
+                        : "Trade plan evidence is being checked"
+                  }
+                />
+              )}
+              {!brief && !research.loading && !research.error && (
+                <p className="notice">
+                  The decision brief is unavailable for this selection. Open
+                  Data & wallets to inspect collection coverage.
                 </p>
-              </div>
-            )}
-            <div className="panel-foot">
-              <span>
-                Quote {sameSelection ? time(d.quoteAt) : "—"}
-                <br />
-                {active
-                  ? `Valid until ${time(d.expiresAt)}`
-                  : "No actionable levels shown"}
-              </span>
-              <Link
-                className="text-link"
-                href={`/flows?coin=${encodeURIComponent(coin)}`}
+              )}
+            </>
+          )}
+          {view === "data" && (
+            <TokenDesk
+              key={`${coin}:${window}`}
+              coin={coin}
+              initialWindow={window}
+            />
+          )}
+          {view === "plan" && (
+            <>
+              <section
+                className="panel setup-plan"
+                aria-labelledby="setup-title"
               >
-                Inspect source wallets <ArrowUpRight size={13} />
-              </Link>
-            </div>
-          </section>
-          <section className="panel setup-risk" aria-labelledby="risk-title">
-            <div className="panel-head">
-              <div>
-                <span className="eyebrow">03 / SIZE</span>
-                <h2 id="risk-title">Your risk budget</h2>
-                <p>
-                  {edited
-                    ? "Your inputs · calculated locally in this browser"
-                    : "Illustrative inputs — replace with your account and limits"}
-                </p>
-              </div>
-              <ShieldCheck size={20} />
-            </div>
-            <div className="setup-risk-fields">
-              {fields.map((f) => (
-                <label key={f.key}>
-                  {f.label}
-                  <span>
-                    <input
-                      type="number"
-                      aria-label={f.label}
-                      min="0"
-                      max={f.max}
-                      step="any"
-                      value={risk[f.key]}
-                      onChange={(e) => {
-                        setRisk({ ...risk, [f.key]: e.target.value });
-                        setEdited(true);
-                      }}
-                    />
-                    <small>{f.suffix}</small>
-                  </span>
-                </label>
-              ))}
-            </div>
-            <p className="subtle-note">
-              1 bp = 0.01%. Loss and open-risk amounts are entered by you.
-              Allocation is capped at 1× account exposure; another wallet’s
-              leverage never sets your size. Funding and liquidation modelling
-              are outside this estimate.
-            </p>
-            {active && sizing.errors.length > 0 && (
-              <div className="notice error" role="status">
-                {sizing.errors.join(" ")}
-              </div>
-            )}
-            <div className="setup-sizing" aria-live="polite">
-              <div>
-                <span>Position notional</span>
-                <strong>
-                  {active && !sizing.errors.length
-                    ? money(sizing.notional, 2)
-                    : "—"}
-                </strong>
-                <small>
-                  {active && !sizing.errors.length
-                    ? `${sizing.quantity.toLocaleString("en-US", { maximumSignificantDigits: 8 })} ${coin}`
-                    : "Requires a valid setup and risk inputs"}
-                </small>
-              </div>
-              <div>
-                <span>Modeled loss at stop</span>
-                <strong className="negative">
-                  {active && !sizing.errors.length
-                    ? money(sizing.risk, 2)
-                    : "—"}
-                </strong>
-                <small>
-                  {active && !sizing.errors.length
-                    ? `${sizing.riskPct.toFixed(2)}% equity · includes estimated costs`
-                    : "Stop execution can slip beyond this amount"}
-                </small>
-              </div>
-            </div>
-            {active && !sizing.errors.length && (
-              <>
-                <div className="setup-budget">
-                  <span>
-                    Available risk budget <b>{money(sizing.budget, 2)}</b>
-                  </span>
-                  <span>
-                    Daily capacity <b>{money(sizing.dailyRemaining, 2)}</b>
-                  </span>
-                  <span>
-                    Open-risk capacity <b>{money(sizing.openRemaining, 2)}</b>
-                  </span>
-                </div>
-                {sizing.allocationLimited && (
-                  <p className="subtle-note">
-                    Your allocation cap reduces this position below your maximum
-                    trade-risk budget.
-                  </p>
-                )}
-                <div className="table-scroll">
-                  <table>
-                    <thead>
-                      <tr>
-                        <th>Full exit scenario</th>
-                        <th>After estimated costs</th>
-                        <th>Net reward / risk</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {sizing.targets.map((t: any) => (
-                        <tr key={t.r}>
-                          <td>
-                            TP{t.r} · {price(t.price)}
-                          </td>
-                          <td
-                            className={t.netPnl >= 0 ? "positive" : "negative"}
-                          >
-                            {money(t.netPnl, 2)}
-                          </td>
-                          <td>{t.netR.toFixed(2)}R</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-                <div className="panel-foot">
-                  <span>
-                    Each row assumes a separate full exit. Targets are not
-                    cumulative profits.
-                  </span>
+                <div className="panel-head">
+                  <div>
+                    <span className="eyebrow">02 / PLAN · {coin}</span>
+                    <h2 id="setup-title">{state}</h2>
+                  </div>
                   <button
                     className="button"
-                    onClick={() =>
-                      download(
-                        `davira-${coin}-research-plan.json`,
-                        JSON.stringify(
-                          {
-                            kind: "research-only",
-                            setup: d,
-                            riskInputs: values,
-                            sizing,
-                            exportedAt: new Date().toISOString(),
-                          },
-                          null,
-                          2,
-                        ),
-                        "application/json",
-                      )
-                    }
+                    onClick={() => {
+                      void setup.reload();
+                      void flows.reload();
+                      void markets.reload();
+                      void builderMarkets.reload();
+                      void research.reload();
+                    }}
+                    disabled={setup.loading}
                   >
-                    <Download size={14} />
-                    Export plan
+                    <RefreshCw size={14} />
+                    Refresh
                   </button>
                 </div>
-              </>
-            )}
-          </section>
+                <DataState resource={setup} />
+                <div className="setup-evidence">
+                  <div>
+                    <span>Wallet direction</span>
+                    <b>
+                      {sameSelection ? (d.read?.score ?? "—") : "—"}
+                      <small> / 100</small>
+                    </b>
+                  </div>
+                  <div>
+                    <span>Evidence quality</span>
+                    <b>
+                      {sameSelection ? (d.read?.confidence ?? "—") : "—"}
+                      <small> / 100</small>
+                    </b>
+                  </div>
+                  <div>
+                    <span>Qualified specialists</span>
+                    <b>
+                      {sameSelection ? (d.read?.qualified ?? 0) : "—"}
+                      <small>
+                        {" "}
+                        / {sameSelection ? (d.read?.count ?? 0) : "—"} wallets
+                      </small>
+                    </b>
+                  </div>
+                </div>
+                <p className="setup-explanation">
+                  {sameSelection
+                    ? d.read?.explanation ||
+                      "There is not enough indexed wallet history to establish a direction."
+                    : "Checking the selected market’s wallet evidence and completed candles."}
+                </p>
+                {!active && !setup.loading && (
+                  <div className="setup-blockers">
+                    <ShieldCheck size={20} />
+                    <div>
+                      <h3>What needs to change</h3>
+                      <ul>
+                        {(reasons.length
+                          ? reasons
+                          : [
+                              setup.error
+                                ? "Restore the market data connection."
+                                : "Wait for aligned wallet and price evidence.",
+                            ]
+                        ).map((reason: string) => (
+                          <li key={reason}>{reason}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+                <div className="setup-levels">
+                  <div>
+                    <span>Entry reference</span>
+                    <strong>{levels ? price(levels.entry) : "—"}</strong>
+                    <small>Current mark · not an order fill</small>
+                  </div>
+                  <div className="setup-stop">
+                    <span>Stop-loss reference</span>
+                    <strong>{levels ? price(levels.stop) : "—"}</strong>
+                    <small>
+                      {levels
+                        ? `${levels.stopPct.toFixed(2)}% from entry · structure + volatility`
+                        : "Withheld until evidence passes"}
+                    </small>
+                  </div>
+                  {[1, 2, 3].map((r) => (
+                    <div key={r}>
+                      <span>
+                        TP{r} · {r}R gross
+                      </span>
+                      <strong>
+                        {levels
+                          ? price(
+                              levels.targets.find((t: any) => t.r === r)?.price,
+                            )
+                          : "—"}
+                      </strong>
+                      <small>{r}× stop distance · scenario level</small>
+                    </div>
+                  ))}
+                </div>
+                {levels && (
+                  <div className="setup-invalidation">
+                    <b>Reassess the setup if</b>
+                    <p>
+                      Price crosses {price(levels.stop)}, wallet direction
+                      changes, evidence fails, or this snapshot expires. ATR14:{" "}
+                      {price(levels.atr)} · 20-hour mean: {price(levels.trend)}.
+                    </p>
+                  </div>
+                )}
+                <div className="panel-foot">
+                  <span>
+                    Quote {sameSelection ? time(d.quoteAt) : "—"}
+                    <br />
+                    {active
+                      ? `Valid until ${time(d.expiresAt)}`
+                      : "No actionable levels shown"}
+                  </span>
+                  <Link
+                    className="text-link"
+                    href={`/flows?coin=${encodeURIComponent(coin)}`}
+                  >
+                    Inspect source wallets <ArrowUpRight size={13} />
+                  </Link>
+                </div>
+              </section>
+              <section
+                className="panel setup-risk"
+                aria-labelledby="risk-title"
+              >
+                <div className="panel-head">
+                  <div>
+                    <span className="eyebrow">03 / SIZE</span>
+                    <h2 id="risk-title">Your risk budget</h2>
+                    <p>
+                      {edited
+                        ? "Your inputs · calculated locally in this browser"
+                        : "Illustrative inputs — replace with your account and limits"}
+                    </p>
+                  </div>
+                  <ShieldCheck size={20} />
+                </div>
+                <div className="setup-risk-fields">
+                  {fields.map((f) => (
+                    <label key={f.key}>
+                      {f.label}
+                      <span>
+                        <input
+                          type="number"
+                          aria-label={f.label}
+                          min="0"
+                          max={f.max}
+                          step="any"
+                          value={risk[f.key]}
+                          onChange={(e) => {
+                            setRisk({ ...risk, [f.key]: e.target.value });
+                            setEdited(true);
+                          }}
+                        />
+                        <small>{f.suffix}</small>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <p className="subtle-note">
+                  1 bp = 0.01%. Loss and open-risk amounts are entered by you.
+                  Allocation is capped at 1× account exposure; another wallet’s
+                  leverage never sets your size. Funding and liquidation
+                  modelling are outside this estimate.
+                </p>
+                {active && sizing.errors.length > 0 && (
+                  <div className="notice error" role="status">
+                    {sizing.errors.join(" ")}
+                  </div>
+                )}
+                <div className="setup-sizing" aria-live="polite">
+                  <div>
+                    <span>Position notional</span>
+                    <strong>
+                      {active && !sizing.errors.length
+                        ? money(sizing.notional, 2)
+                        : "—"}
+                    </strong>
+                    <small>
+                      {active && !sizing.errors.length
+                        ? `${sizing.quantity.toLocaleString("en-US", { maximumSignificantDigits: 8 })} ${coin}`
+                        : "Requires a valid setup and risk inputs"}
+                    </small>
+                  </div>
+                  <div>
+                    <span>Modeled loss at stop</span>
+                    <strong className="negative">
+                      {active && !sizing.errors.length
+                        ? money(sizing.risk, 2)
+                        : "—"}
+                    </strong>
+                    <small>
+                      {active && !sizing.errors.length
+                        ? `${sizing.riskPct.toFixed(2)}% equity · includes estimated costs`
+                        : "Stop execution can slip beyond this amount"}
+                    </small>
+                  </div>
+                </div>
+                {active && !sizing.errors.length && (
+                  <>
+                    <div className="setup-budget">
+                      <span>
+                        Available risk budget <b>{money(sizing.budget, 2)}</b>
+                      </span>
+                      <span>
+                        Daily capacity <b>{money(sizing.dailyRemaining, 2)}</b>
+                      </span>
+                      <span>
+                        Open-risk capacity{" "}
+                        <b>{money(sizing.openRemaining, 2)}</b>
+                      </span>
+                    </div>
+                    {sizing.allocationLimited && (
+                      <p className="subtle-note">
+                        Your allocation cap reduces this position below your
+                        maximum trade-risk budget.
+                      </p>
+                    )}
+                    <div className="table-scroll">
+                      <table>
+                        <thead>
+                          <tr>
+                            <th>Full exit scenario</th>
+                            <th>After estimated costs</th>
+                            <th>Net reward / risk</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {sizing.targets.map((t: any) => (
+                            <tr key={t.r}>
+                              <td>
+                                TP{t.r} · {price(t.price)}
+                              </td>
+                              <td
+                                className={
+                                  t.netPnl >= 0 ? "positive" : "negative"
+                                }
+                              >
+                                {money(t.netPnl, 2)}
+                              </td>
+                              <td>{t.netR.toFixed(2)}R</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="panel-foot">
+                      <span>
+                        Each row assumes a separate full exit. Targets are not
+                        cumulative profits.
+                      </span>
+                      <button
+                        className="button"
+                        onClick={() =>
+                          download(
+                            `davira-${coin}-research-plan.json`,
+                            JSON.stringify(
+                              {
+                                kind: "research-only",
+                                setup: d,
+                                riskInputs: values,
+                                sizing,
+                                exportedAt: new Date().toISOString(),
+                              },
+                              null,
+                              2,
+                            ),
+                            "application/json",
+                          )
+                        }
+                      >
+                        <Download size={14} />
+                        Export plan
+                      </button>
+                    </div>
+                  </>
+                )}
+              </section>
+            </>
+          )}
         </div>
       </div>
       <details className="panel research-card setup-method">

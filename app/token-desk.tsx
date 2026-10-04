@@ -18,8 +18,14 @@ import { DataState, time, download } from "./ui";
 import DecisionPanel from "./decision-panel";
 import ProbabilityPanel from "./probability-panel";
 const fmt = (n: number | null) => (n == null ? "—" : `${n.toFixed(1)}%`);
-export default function TokenDesk({ coin }: { coin: string }) {
-  const [window, setWindow] = useState("24h"),
+export default function TokenDesk({
+  coin,
+  initialWindow = "24h",
+}: {
+  coin: string;
+  initialWindow?: string;
+}) {
+  const [window, setWindow] = useState(initialWindow),
     [cohort, setCohort] = useState("all"),
     [mode, setMode] = useState("positions"),
     [tab, setTab] = useState("leaders"),
@@ -235,7 +241,7 @@ export default function TokenDesk({ coin }: { coin: string }) {
                   </p>
                 </div>
                 <div className="tabs">
-                  {["24h", "7d", "30d"].map((w) => (
+                  {["6h", "24h", "7d", "30d"].map((w) => (
                     <button
                       key={w}
                       className={window === w ? "selected" : ""}

@@ -5,6 +5,7 @@ import { tokenTimeline } from "./token-desk-math.mjs";
 import { instrumentClass } from "./screener-math.mjs";
 import { collectionState } from "./token-collection.mjs";
 import { decisionBrief } from "./decision-brief.mjs";
+import { traderBrief, completedFlowComparison } from "./trader-brief.mjs";
 import { tokenRecordEvidence } from "./market-read.mjs";
 import { historicalProbability } from "./probability-math.mjs";
 import {
@@ -193,6 +194,10 @@ export async function tokenDesk(coin, window = "24h", cohort = "all") {
       "Observed executions in the selected current wallet cohort; missing hours do not imply no market activity. Archived aggregates are retained for six calendar months.",
   };
   result.decision = decisionBrief(result);
+  result.traderBrief = traderBrief(
+    result,
+    completedFlowComparison(records, history.data, coin, now),
+  );
   resultCache.set(key, result);
   if (resultCache.size > 30)
     resultCache.delete(resultCache.keys().next().value);

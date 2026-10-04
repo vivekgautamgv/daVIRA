@@ -70,6 +70,25 @@ test("a dominant seller can disagree with a majority of buyers", () => {
     brief.observations.some((o) => o.id === "breadth" && o.tone === "mixed"),
   );
 });
+test("largest net contributor differs from a high-turnover flat wallet", () => {
+  const brief = decisionBrief(
+    data({ longIn: 590, shortOut: 0, shortIn: 510, longOut: 0 }, [
+      row("churn", 900, 0),
+      row("buyer", 140, 140),
+      row("seller", 60, -60),
+    ]),
+  );
+  assert.equal(brief.metrics.netBuy, 80);
+  assert.equal(brief.metrics.excludingLeader, 80);
+  assert.equal(brief.metrics.excludingNetLeader, -60);
+  assert.equal(brief.metrics.netLeader.address, "buyer");
+  const partial = decisionBrief(
+    data({ longIn: 590, shortOut: 0, shortIn: 510, longOut: 0 }, [
+      row("buyer", 140, 140),
+    ]),
+  );
+  assert.equal(partial.metrics.excludingNetLeader, null);
+});
 test("covering-heavy buying is identified separately from fresh long entries", () => {
   const brief = decisionBrief(
     data({ longIn: 10, shortOut: 90, shortIn: 60, longOut: 0 }, [

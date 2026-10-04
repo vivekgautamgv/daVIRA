@@ -119,6 +119,10 @@ test("Token Lens validates inputs and keeps unavailable flow history distinct fr
   assert.equal(d.decision.metrics.excludingLeader, null);
   assert.equal(d.decision.metrics.breadthPct, null);
   assert.equal(d.decision.coin, "BTC");
+  assert.equal(d.traderBrief.coin, "BTC");
+  assert.equal(d.traderBrief.comparison.current.end, end);
+  assert.equal(d.traderBrief.comparison.delta, null);
+  assert.equal(d.traderBrief.wallets.length, 0);
   const sixResponse = await call(
       "/token-desk?coin=BTC&window=6h&cohort=watchlist",
     ),

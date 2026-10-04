@@ -1,0 +1,232 @@
+.trader-brief {
+  display: grid;
+  gap: 18px;
+  min-width: 0;
+}
+.setup-scope {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  padding: 14px 0;
+  margin-bottom: 18px;
+  border-block: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+}
+.setup-scope b {
+  color: var(--text);
+  font-weight: 500;
+}
+.thesis-head {
+  padding: 25px;
+  border-top: 2px solid var(--accent);
+}
+.thesis-kicker {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.thesis-kicker small,
+.thesis-note,
+.thesis-limit {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.8;
+}
+.thesis-head h2 {
+  font-size: 28px;
+  line-height: 1.2;
+  letter-spacing: -0.8px;
+  margin: 20px 0 12px;
+}
+.thesis-head > p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--muted);
+}
+.thesis-readiness {
+  display: grid;
+  gap: 7px;
+  margin: 20px 0 0;
+  padding: 15px 0;
+  border-block: 1px solid var(--line);
+  font-size: 12px;
+}
+.thesis-readiness span {
+  color: var(--muted);
+  font-size: 11px;
+}
+.thesis-head .thesis-limit {
+  margin-top: 12px;
+  font-size: 11px;
+}
+.thesis-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.thesis-facts {
+  padding: 20px;
+}
+.thesis-facts h3,
+.thesis-case h4,
+.thesis-history h4 {
+  font-size: 15px;
+  font-weight: 500;
+  margin: 0 0 16px;
+}
+.thesis-facts article {
+  border-top: 1px solid var(--line);
+  padding: 14px 0;
+}
+.thesis-facts article:last-child {
+  padding-bottom: 0;
+}
+.thesis-facts article > div {
+  display: grid;
+  gap: 8px;
+}
+.thesis-facts b {
+  font-size: 12px;
+  font-weight: 500;
+}
+.thesis-facts strong {
+  font-size: 21px;
+  font-weight: 500;
+}
+.thesis-facts p,
+.thesis-history p {
+  font-size: 11px;
+  line-height: 1.8;
+  color: var(--muted);
+  margin: 7px 0 0;
+}
+.trader-brief .panel-head h3 {
+  font-size: 17px;
+  margin: 8px 0;
+}
+.trader-brief .panel-head p {
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--muted);
+}
+.trader-brief td {
+  font-size: 12px;
+}
+.trader-brief td small {
+  display: block;
+  font-size: 10px;
+  margin-top: 7px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.thesis-note {
+  padding: 14px 20px;
+  margin: 0;
+}
+.thesis-scenarios > .thesis-columns {
+  padding: 0 20px;
+  gap: 20px;
+}
+.thesis-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.thesis-check p {
+  font-size: 11px;
+  line-height: 1.7;
+  margin: 0;
+}
+.thesis-check small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  margin-top: 5px;
+}
+.thesis-state {
+  flex-shrink: 0;
+  font-size: 9px;
+  padding: 3px 5px;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+.thesis-state.met {
+  color: var(--positive);
+  background: var(--panel2);
+}
+.thesis-price {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 20px;
+  border-top: 1px solid var(--line);
+  gap: 18px;
+  background: var(--panel2);
+}
+.thesis-price span,
+.thesis-price small {
+  display: block;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.8;
+}
+.thesis-price b {
+  display: block;
+  margin: 8px 0;
+  font-size: 18px;
+  font-weight: 500;
+}
+.thesis-price p {
+  grid-column: 1/-1;
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.8;
+}
+.thesis-history > .thesis-columns {
+  padding: 0 20px 16px;
+}
+.thesis-history small {
+  font-size: 11px;
+  color: var(--muted);
+}
+.setup-detail-tabs {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  background: var(--bg);
+  padding: 0 2px;
+}
+.setup-detail-tabs button {
+  padding: 15px 0;
+  font-size: 12px;
+  color: var(--muted);
+  border-bottom: 2px solid transparent;
+}
+.setup-detail-tabs button[aria-pressed="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+@media (max-width: 700px) {
+  .thesis-columns {
+    grid-template-columns: 1fr;
+  }
+  .thesis-head {
+    padding: 20px;
+  }
+  .thesis-head h2 {
+    font-size: 24px;
+  }
+  .thesis-price {
+    grid-template-columns: 1fr;
+  }
+  .setup-detail-tabs {
+    gap: 15px;
+  }
+}

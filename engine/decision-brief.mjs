@@ -121,6 +121,13 @@ export function decisionBrief(input = {}) {
     agrees(activityTotal, grossActivity) &&
     agrees(rowNet, netBuy);
   const excludingLeader = reconciled && leader ? netBuy - leader.netBuy : null;
+  const netLeader = [...rows].sort(
+    (a, b) =>
+      Math.abs(b.netBuy) - Math.abs(a.netBuy) ||
+      a.address.localeCompare(b.address),
+  )[0];
+  const excludingNetLeader =
+    reconciled && netLeader ? netBuy - netLeader.netBuy : null;
   const effectiveWallets =
     activityTotal > 0
       ? 1 / rows.reduce((s, row) => s + (row.notional / activityTotal) ** 2, 0)
@@ -154,6 +161,14 @@ export function decisionBrief(input = {}) {
     breadthPct,
     leaderSharePct,
     excludingLeader,
+    excludingNetLeader,
+    netLeader: netLeader
+      ? {
+          address: netLeader.address,
+          name: netLeader.name,
+          netBuy: netLeader.netBuy,
+        }
+      : null,
     effectiveWallets,
     positionNet,
     positionLongSharePct: percentage(long, positionGross),
